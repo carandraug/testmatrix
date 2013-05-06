@@ -14,10 +14,16 @@ From the Matrix Computation Toolbox documentation:
 > new ones.
 
 I will be using the original Higham's work as basis for implementing missing
-functions in [GNU Octave](http://www.gnu.org/software/octave/). While the
-original Test Matrix Toolbox was distributed without a license, I received
-permission from Professor Higham to use it under the GNU General Public
-License version 3 or later:
+functions in [GNU Octave](http://www.gnu.org/software/octave/). That means
+the head of the repository will *NOT* be the original release, and may not
+be working at all. Check the initial commit (or tag v3.00) for the actual
+latest release of the toolbox.
+
+
+
+While the original Test Matrix Toolbox was distributed without a license,
+I received permission from Professor Higham to use it under the GNU
+General Public License version 3 or later:
 
 On 6 May 2013 13:50, Nick Higham <Nicholas.J.Higham@manchester.ac.uk> wrote:
 > Dear Carnė,
