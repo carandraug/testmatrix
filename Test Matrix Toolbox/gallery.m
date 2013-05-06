@@ -39,6 +39,26 @@
 ## @code{0 < @var{x}(1) < @dots{} < @var{x}(N)} and
 ## @code{0 < @var{y}(1) < @dots{} < @var{x}(N)}.
 ## @end deftypefn
+##
+## @deftypefn  {Function File} {@var{c} =} gallery ("chebspec", @var{n})
+## @deftypefnx {Function File} {@var{c} =} gallery ("chebspec", @var{n}, @var{k})
+## Create a Chebyshev spectral differentiation matrix.
+##
+## Returns the Chebyshev spectral differentiation matrix of order @var{n}.
+## The optional argument @var{k} can be:
+##
+## @table @asis
+## @item 0 (default)
+## No boundary conditions. @var{c} is nilpotent, with
+## @code{@var{c}^@var{n}N = 0} and it has the null vector
+## @code{ones (@var{n},1)}.
+## @var{c} is nonsingular and well-conditioned, and its eigenvalues
+## have negative real parts.
+## @end table
+##
+## The computed eigenvector matrix @var{x} from @code{eig} is
+## ill-conditioned (@code{mesh (real (@var{x}))} is interesting).
+## @end deftypefn
 
 ## Code for the individual matrices by
 ## Nicholas .J. Higham <Nicholas.J.Higham@manchester.ac.uk>
@@ -56,8 +76,7 @@ function [matrix, varargout] = gallery (name, varargin)
     case "binomial"
       error ("gallery: matrix %s not implemented.", name);
     case "cauchy",      matrix = cauchy      (varargin{:});
-    case "chebspec"
-      error ("gallery: matrix %s not implemented.", name);
+    case "chebspec",    matrix = chebspec    (varargin{:});
     case "chebvand"
       error ("gallery: matrix %s not implemented.", name);
     case "chow"
@@ -226,4 +245,70 @@ function C = cauchy (x, y)
 
   C = x * ones (1, n) + ones (n, 1) * y.';
   C = ones (n) ./ C;
+endfunction
+
+function C = chebspec (n, k = 0)
+  ## CHEBSPEC  Chebyshev spectral differentiation matrix.
+  ##           C = CHEBSPEC(N, K) is a Chebyshev spectral differentiation
+  ##           matrix of order N.  K = 0 (the default) or 1.
+  ##           For K = 0 (`no boundary conditions'), C is nilpotent, with
+  ##               C^N = 0 and it has the null vector ONES(N,1).
+  ##               C is similar to a Jordan block of size N with eigenvalue zero.
+  ##           For K = 1, C is nonsingular and well-conditioned, and its eigenvalues
+  ##               have negative real parts.
+  ##           For both K, the computed eigenvector matrix X from EIG is
+  ##               ill-conditioned (MESH(REAL(X)) is interesting).
+  ##
+  ##           References:
+  ##           C. Canuto, M.Y. Hussaini, A. Quarteroni and T.A. Zang, Spectral
+  ##              Methods in Fluid Dynamics, Springer-Verlag, Berlin, 1988; p. 69.
+  ##           L.N. Trefethen and M.R. Trummer, An instability phenomenon in
+  ##              spectral methods, SIAM J. Numer. Anal., 24 (1987), pp. 1008-1023.
+  ##           D. Funaro, Computing the inverse of the Chebyshev collocation
+  ##              derivative, SIAM J. Sci. Stat. Comput., 9 (1988), pp. 1050-1057.
+
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 or 2 arguments are required for Chebyshev matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n))
+    error ("gallery: N must be a numeric scalar.");
+  endif
+
+  ## No check for k. The original code did not make this check and
+  ## apparently matlab did not add it either. So while undocumented,
+  ## for matlab compatibility K is 0 for ANYTHING other than a value of 1
+
+  ## k = 1 case obtained from k = 0 case with one bigger n.
+  if (k == 1)
+    n = n + 1;
+  endif
+
+  n = n-1;
+  C = zeros (n+1);
+
+  one    = ones (n+1, 1);
+  x      = cos ((0:n)' * (pi/n));
+  d      = ones (n+1, 1);
+  d(1)   = 2;
+  d(n+1) = 2;
+
+  ## eye(size(C)) on next line avoids div by zero.
+  C = (d * (one./d)') ./ (x*one'-one*x' + eye (size (C)));
+
+  ##  Now fix diagonal and signs.
+  C(1,1) = (2*n^2+1)/6;
+  for i = 2:n+1
+      if (rem (i, 2) == 0)
+         C(:,i) = -C(:,i);
+         C(i,:) = -C(i,:);
+      endif
+      if (i < n+1)
+         C(i,i) = -x(i)/(2*(1-x(i)^2));
+      else
+         C(n+1,n+1) = -C(1,1);
+      endif
+  endfor
+
+  if (k == 1)
+     C = C(2:n+1,2:n+1);
+  endif
 endfunction
