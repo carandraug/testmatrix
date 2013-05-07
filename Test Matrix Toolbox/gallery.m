@@ -137,6 +137,29 @@
 ## replaced by minus the absolute value of the largest element in absolute
 ## value in its row.  However, if @var{a} is triangular @var{c} will be too.
 ## @end deftypefn
+##
+## @deftypefn  {Function File} {@var{c} =} gallery ("triw", @var{n})
+## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha})
+## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha}, @var{k})
+## Create an upper triangular matrix discussed by Kahan, Golub and Wilkinson.
+##
+## @var{c} is the upper triangular matrix with ones on the diagonal
+## and @var{alpha}s on the first @var{k} >= 0 superdiagonals.  Both @var{alpha}
+## and @var{k} default to -1 (full upper triangle).
+##
+## @var{n} may be a 2 element vector in which case the matrix is
+## @var{n}(1)-by-@var{n}(2) and upper trapezoidal.
+##
+## Ostrowski (1954) shows that
+## @code{cond (gallery ("triw", @var{n}, 2)) = cot (pi/(4*@var{n}))^2}
+## and for large @code{abs (@var{alpha})},
+## @code{cond (gallery ("triw", @var{n}, @var{alpha}))} is approximately
+## @code{abs (@var{alpha})^@var{n}*sin (pi/(4 * @var{n}-2)).
+##
+## Adding @code{-2^(2-@var{n})} to the (@var{n},1) element makes
+## @var{c} singular, as does adding @code{-2^(1-@var{n})} to all elements
+## in the first column.
+## @end deftypefn
 
 ## Code for the individual matrices by
 ## Nicholas .J. Higham <Nicholas.J.Higham@manchester.ac.uk>
@@ -264,8 +287,7 @@ function [matrix, varargout] = gallery (name, varargin)
       error ("gallery: matrix %s not implemented.", name);
     case "tridiag"
       error ("gallery: matrix %s not implemented.", name);
-    case "triw"
-      error ("gallery: matrix %s not implemented.", name);
+    case "triw",        matrix = triw        (varargin{:});
     case "uniformdata"
       error ("gallery: matrix %s not implemented.", name);
     case "wathen"
@@ -579,6 +601,48 @@ function C = compar (A, k = 0)
     error ("gallery: K must be 0 or 1 for compar matrix.");
   endif
 
+endfunction
+
+function t = triw (n, alpha = -1, k = -1)
+  ## TRIW   Upper triangular matrix discussed by Wilkinson and others.
+  ##        TRIW(N, ALPHA, K) is the upper triangular matrix with ones on
+  ##        the diagonal and ALPHAs on the first K >= 0 superdiagonals.
+  ##        N may be a 2-vector, in which case the matrix is N(1)-by-N(2) and
+  ##        upper trapezoidal.
+  ##        Defaults: ALPHA = -1,
+  ##                  K = N - 1     (full upper triangle).
+  ##        TRIW(N) is a matrix discussed by Kahan, Golub and Wilkinson.
+  ##
+  ##        Ostrowski (1954) shows that
+  ##          COND(TRIW(N,2)) = COT(PI/(4*N))^2,
+  ##        and for large ABS(ALPHA),
+  ##          COND(TRIW(N,ALPHA)) is approximately ABS(ALPHA)^N*SIN(PI/(4*N-2)).
+  ##
+  ##        Adding -2^(2-N) to the (N,1) element makes TRIW(N) singular,
+  ##        as does adding -2^(1-N) to all elements in the first column.
+  ##
+  ##        References:
+  ##        G.H. Golub and J.H. Wilkinson, Ill-conditioned eigensystems and the
+  ##           computation of the Jordan canonical form, SIAM Review,
+  ##           18(4), 1976, pp. 578-619.
+  ##        W. Kahan, Numerical linear algebra, Canadian Math. Bulletin,
+  ##           9 (1966), pp. 757-801.
+  ##        A.M. Ostrowski, On the spectrum of a one-parametric family of
+  ##           matrices, J. Reine Angew. Math., 193 (3/4), 1954, pp. 143-160.
+  ##        J.H. Wilkinson, Singular-value decomposition---basic aspects,
+  ##           in D.A.H. Jacobs, ed., Numerical Software---Needs and Availability,
+  ##           Academic Press, London, 1978, pp. 109-135.
+
+  if (nargin < 1 || nargin > 3)
+    error ("gallery: 1 to 3 arguments are required for triw matrix.");
+  elseif (! isscalar (alpha))
+     error("gallery: ALPHA must be a scalar for triw matrix.")
+  endif
+
+  m = n(1);              # Parameter n specifies dimension: m-by-n.
+  n = n(length (n));
+
+  t = tril (eye (m, n) + alpha * triu (ones (m, n), 1), k);
 endfunction
 
 
