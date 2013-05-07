@@ -180,6 +180,14 @@
 ## elimination: see NA Digest Volume 89, Issue 3 (January 22, 1989).
 ## @end deftypefn
 ##
+## @deftypefn  {Function File} {@var{c} =} gallery ("gcdmat", @var{n})
+## Create a greatest common divisor matrix.
+##
+## @var{c} is an @var{n}-by-@var{n} matrix whose values correspond to the
+## greatest common divisor of its coordinate values, i.e., @var{c}(i,j)
+## correspond @code{gcd (i, j)}.
+## @end deftypefn
+##
 ## @deftypefn  {Function File} {@var{c} =} gallery ("triw", @var{n})
 ## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha})
 ## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha}, @var{k})
@@ -203,8 +211,9 @@
 ## in the first column.
 ## @end deftypefn
 
-## Code for the individual matrices by
-## Nicholas .J. Higham <Nicholas.J.Higham@manchester.ac.uk>
+## Code for most of the individual matrices (except binomial, gcdmat,
+## integerdata, leslie, normaldata, randcolu, randcorr, sampling,
+## uniformdata) by Nicholas .J. Higham <Nicholas.J.Higham@manchester.ac.uk>
 ## Adapted for Octave and into single gallery function by Carnë Draug
 
 function [matrix, varargout] = gallery (name, varargin)
@@ -249,8 +258,7 @@ function [matrix, varargout] = gallery (name, varargin)
       error ("gallery: matrix %s not implemented.", name);
     case "gearmat"
       error ("gallery: matrix %s not implemented.", name);
-    case "gcdmat"
-      error ("gallery: matrix %s not implemented.", name);
+    case "gcdmat",      matrix = gcdmat      (varargin{:});
     case "grcar"
       error ("gallery: matrix %s not implemented.", name);
     case "hanowa"
@@ -671,7 +679,7 @@ function A = condex (n, k = 4, theta = 100)
   elseif (! isnumeric (n))
     error ("gallery: N must be numeric for condex matrix.");
   elseif (! isnumeric (k) || ! isscalar (k))
-    error ("gallery: K must be a numeric scalar for condex matrix.);
+    error ("gallery: K must be a numeric scalar for condex matrix.");
   endif
 
   if (k == 1)       # Cline and Rew (1983), Example B.
@@ -727,7 +735,7 @@ function A = cycol (n, k)
   if (nargin < 1 || nargin > 2)
     error ("gallery: 1 or 2 arguments are required for cycol matrix.");
   elseif (! isscalar (k))
-    error ("gallery: K must be a scalar for cycol matrix.);
+    error ("gallery: K must be a scalar for cycol matrix.");
   endif
 
   m = n(1);              # Parameter n specifies dimension: m-by-n.
@@ -742,6 +750,15 @@ function A = cycol (n, k)
     A = [A A(:, 1:k)];
   endfor
   A = A(:, 1:n);
+endfunction
+
+function c = gcdmat (n)
+  if (nargin != 1)
+    error ("gallery: unspecified N for gcdmat matrix.");
+  elseif (! isscalar (n) || ! isnumeric (n))
+    error ("gallery: N must be a numeric scalar for gcdmat matrix.");
+  endif
+  c = gcd (repmat ((1:n)', [1 n]), repmat (1:n, [n 1]));
 endfunction
 
 function t = triw (n, alpha = -1, k = -1)
