@@ -227,7 +227,7 @@
 ## Create a symmetric Fiedler matrix.
 ##
 ## @var{a} is a N-by-N symmetric matrix where N is the length of
-## the vector @var[c}, and with elements @code{abs (@var{c}(i) - @var{c}(j))}.
+## the vector @var{c}, and with elements @code{abs (@var{c}(i) - @var{c}(j))}.
 ## If @var{c} is a scalar, the vector 1:@var{c} is used insted, (i.e.
 ## @code{@var{a}(i,j) = abs (i - j)}.
 ##
@@ -256,7 +256,7 @@
 ## It has the characteristic polynomial
 ## @code{det (@var{a}-t*eye) = (@var{lambda}-t)^@var{n} - (-1)^@var{n} @var{alpha}}.
 ##
-## @var{alpha} defaults to @code{sqrt (eps)} and @var{lambda] to 0.
+## @var{alpha} defaults to @code{sqrt (eps)} and @var{lambda} to 0.
 ## @end deftypefn
 ##
 ## @deftypefn  {Function File} {@var{f} =} gallery ("frank", @var{n})
@@ -276,7 +276,7 @@
 ## The @code{floor (@var{n}/2)} smallest eigenvalues of @var{f} are ill
 ## conditioned, the more so for bigger @var{n}.
 ##
-## @code{det (gallery ("frank", @var{n})') comes out far from 1 for
+## @code{det (gallery ("frank", @var{n})')} comes out far from 1 for
 ## large @var{n} --- see Frank (1958) and Wilkinson (1960) for discussions.
 ## @end deftypefn
 ##
@@ -576,6 +576,7 @@
 ##           POISSON(N) is the block tridiagonal matrix of order N^2
 ##           resulting from discretizing Poisson's equation with the
 ##           5-point operator on an N-by-N mesh.
+## @end deftypefn
 ##
 ## @deftypefn  {Function File} {@var{a} =} gallery ("prolate", @var{n})
 ## @deftypefnx {Function File} {@var{a} =} gallery ("prolate", @var{n}, @var{w})
@@ -2340,7 +2341,7 @@ function A = randsvd (n, kappa = sqrt (1/eps), mode = 3, kl = n-1, ku = kl)
     sigma(m, n) = 0;      % Expand to m-by-n diagonal matrix.
   end
 
-  if kl == 0 & ku == 0     % Diagonal matrix requested - nothing more to do.
+  if kl == 0 && ku == 0     % Diagonal matrix requested - nothing more to do.
     A = sigma;
     return
   end
@@ -2350,7 +2351,7 @@ function A = randsvd (n, kappa = sqrt (1/eps), mode = 3, kl = n-1, ku = kl)
   A = qmult(sigma');
   A = qmult(A');
 
-  if kl < n-1 | ku < n-1   % Bandwidth reduction.
+  if kl < n-1 || ku < n-1   % Bandwidth reduction.
     A = bandred(A, kl, ku);
   end
 endfunction
@@ -2468,7 +2469,7 @@ function T = toeppd (n, m = n, w = rand (m,1), theta = rand (m,1))
   ##          a symmetric positive definite Toeplitz matrix, SIAM J. Sci. Stat.
   ##          Comput., 7 (1986), pp. 123-131.
 
-  if max(size(w)) ~= m | max(size(theta)) ~= m
+  if max(size(w)) ~= m || max(size(theta)) ~= m
     error('Arguments W and THETA must be vectors of length M.')
   endif
 
@@ -2503,7 +2504,7 @@ function P = toeppen (n, a = 1, b = -10, c = 0, d = 10, e = 1)
   ##              Numeriques, Editions Centre Nat. Recherche Sci., Paris, 165,
   ##              1966, pp. 349-365.
 
-  P = spdiags([ a*ones(n,1) b*ones(n,1) c*ones(n,1) d*ones(n,1) ....
+  P = spdiags([ a*ones(n,1) b*ones(n,1) c*ones(n,1) d*ones(n,1) ...
                 e*ones(n,1) ], -2:2, n, n);
 endfunction
 
