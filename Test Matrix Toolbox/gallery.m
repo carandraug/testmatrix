@@ -73,6 +73,21 @@
 ## If the optional argument @var{m} is specified, returns a rectangular
 ## version of the matrix with @var{m} rows.
 ## @end deftypefn
+##
+## @deftypefn  {Function File} {@var{c} =} gallery ("chow", @var{n})
+## @deftypefnx {Function File} {@var{c} =} gallery ("chow", @var{x}, @var{alpha})
+## @deftypefnx {Function File} {@var{c} =} gallery ("chow", @var{x}, @var{alpha}, @var{delta})
+## Create a Chow matrix -- a singular Toeplitz lower Hessenberg matrix.
+##
+## The matrix @var{c} is a Toeplitz lower Hessenberg matrix equal to
+## @code{H(@var{alpha}) + @var{delta} * eye}, where
+## @math{H(i,j) = @var{alpha}^(i-j+1)}.  H(@var{alpha}) has
+## @code{p = floor (N/2)} zero eigenvalues, the rest being 
+## @code{4*@var{alpha}*cos( k*pi/(N+2) )^2}, for @code{k = 1:N-p}.
+##
+## The optional arguments @var{alpha} and @var{delta} default to 1 and 0,
+## respectively.
+## @end deftypefn
 
 ## Code for the individual matrices by
 ## Nicholas .J. Higham <Nicholas.J.Higham@manchester.ac.uk>
@@ -92,8 +107,7 @@ function [matrix, varargout] = gallery (name, varargin)
     case "cauchy",      matrix = cauchy      (varargin{:});
     case "chebspec",    matrix = chebspec    (varargin{:});
     case "chebvand",    matrix = chebvand    (varargin{:});
-    case "chow"
-      error ("gallery: matrix %s not implemented.", name);
+    case "chow",        matrix = chow        (varargin{:});
     case "circul"
       error ("gallery: matrix %s not implemented.", name);
     case "clement"
@@ -368,6 +382,33 @@ function C = chebvand (m, p)
         C(i,:) = 2.*p.*C(i-1,:) - C(i-2,:);
     endfor
   endif
+endfunction
+
+function A = chow (n, alpha = 1, delta = 0)
+  ## CHOW    Chow matrix - a singular Toeplitz lower Hessenberg matrix.
+  ##         A = CHOW(N, ALPHA, DELTA) is a Toeplitz lower Hessenberg matrix
+  ##         A = H(ALPHA) + DELTA*EYE, where H(i,j) = ALPHA^(i-j+1).
+  ##         H(ALPHA) has p = FLOOR(N/2) zero eigenvalues, the rest being
+  ##         4*ALPHA*COS( k*PI/(N+2) )^2, k=1:N-p.
+  ##         Defaults: ALPHA = 1, DELTA = 0.
+  ##
+  ##         References:
+  ##         T.S. Chow, A class of Hessenberg matrices with known
+  ##            eigenvalues and inverses, SIAM Review, 11 (1969), pp. 391-395.
+  ##         G. Fairweather, On the eigenvalues and eigenvectors of a class of
+  ##            Hessenberg matrices, SIAM Review, 13 (1971), pp. 220-221.
+
+  if (nargin < 1 || nargin > 3)
+    error ("gallery: 1 to 3 arguments are required for Chow matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n))
+    error ("gallery: N must be a numeric scalar");
+  elseif (! isnumeric (alpha) || ! isscalar (alpha))
+    error ("gallery: ALPHA must be a numeric scalar");
+  elseif (! isnumeric (delta) || ! isscalar (delta))
+    error ("gallery: DELTA must be a numeric scalar");
+  endif
+
+  A = toeplitz (alpha.^(1:n), [alpha 1 zeros(1, n-2)]) + delta * eye (n);
 endfunction
 
 
