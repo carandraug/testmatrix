@@ -88,6 +88,23 @@
 ## The optional arguments @var{alpha} and @var{delta} default to 1 and 0,
 ## respectively.
 ## @end deftypefn
+##
+## @deftypefn  {Function File} {@var{c} =} gallery ("circul", @var{v})
+## Create a circulant matrix.
+##
+## @var{c} is circulant matrix whose first row is the vector @var{v}.
+## If @var{v} is a scalar, it is interpreted as @code{1:@var{v}}.
+##
+## A circulant matrix has the property that each row is obtained
+## from the previous one by cyclically permuting the entries one step
+## forward; it is a special Toeplitz matrix in which the diagonals
+## `wrap round'.
+##
+## The eigensystem of @var{c} (N-by-N) is known explicitly.  If t is an Nth
+## root of unity, then the inner product of @var{v} with
+## @code{W = [1 t t^2 @dots{} t^N]} is an eigenvalue of @var{c}, and
+## @code{W(N:-1:1)} is an eigenvector of @var{c}.
+## @end deftypefn
 
 ## Code for the individual matrices by
 ## Nicholas .J. Higham <Nicholas.J.Higham@manchester.ac.uk>
@@ -108,8 +125,7 @@ function [matrix, varargout] = gallery (name, varargin)
     case "chebspec",    matrix = chebspec    (varargin{:});
     case "chebvand",    matrix = chebvand    (varargin{:});
     case "chow",        matrix = chow        (varargin{:});
-    case "circul"
-      error ("gallery: matrix %s not implemented.", name);
+    case "circul",      matrix = circul      (varargin{:});
     case "clement"
       error ("gallery: matrix %s not implemented.", name);
     case "compar"
@@ -409,6 +425,35 @@ function A = chow (n, alpha = 1, delta = 0)
   endif
 
   A = toeplitz (alpha.^(1:n), [alpha 1 zeros(1, n-2)]) + delta * eye (n);
+endfunction
+
+function C = circul (v)
+  ## CIRCUL  Circulant matrix.
+  ##         C = CIRCUL(V) is the circulant matrix whose first row is V.
+  ##         (A circulant matrix has the property that each row is obtained
+  ##         from the previous one by cyclically permuting the entries one step
+  ##         forward; it is a special Toeplitz matrix in which the diagonals
+  ##         `wrap round'.)
+  ##         Special case: if V is a scalar then C = CIRCUL(1:V).
+  ##         The eigensystem of C (N-by-N) is known explicitly.   If t is an Nth
+  ##         root of unity, then the inner product of V with W = [1 t t^2 ... t^N]
+  ##         is an eigenvalue of C, and W(N:-1:1) is an eigenvector of C.
+  ##
+  ##         Reference:
+  ##         P.J. Davis, Circulant Matrices, John Wiley, 1977.
+
+  if (nargin != 1)
+    error ("gallery: only 1 argument required for circul matrix.");
+  endif
+
+  n = length (v);
+  if n == 1
+     n = v;
+     v = 1:n;
+  endif
+
+  v = v(:).';   # Make sure v is a row vector
+  C = toeplitz ([v(1) v(n:-1:2)], v);
 endfunction
 
 
