@@ -119,7 +119,7 @@
 ## @var{k} = 1 it is symmetric. @code{gallery ("clement", @var{n}, 1)} is
 ## diagonally similar to @code{gallery ("clement", @var{n})}.
 ##
-## Similar properties hold for @code{gallery ("tridiag", X, Y, Z)] where
+## Similar properties hold for @code{gallery ("tridiag", X, Y, Z)]} where
 ## @code{y = zeros (@var{n}, 1)}.  The eigenvalues still come in plus/minus
 ## pairs but they are not known explicitly
 ## @end deftypefn
@@ -128,7 +128,7 @@
 ## @deftypefnx {Function File} {@var{c} =} gallery ("compar", @var{a}, 1)
 ## Create a comparison matrix.
 ##
-## @var{c} is @code{diag(@var{b}) - tril (@var{b}, -1) - triu (@var{b} ,1),
+## @var{c} is @code{diag(@var{b}) - tril (@var{b}, -1) - triu (@var{b} ,1)},
 ## where @code{@var{b} = abs (@var{a})}.  This is often denoted by M(@var{a})
 ## in the literature.
 ##
@@ -180,6 +180,24 @@
 ## elimination: see NA Digest Volume 89, Issue 3 (January 22, 1989).
 ## @end deftypefn
 ##
+## @deftypefn  {Function File} {[@var{c},@var{d}, @var{e}] =} gallery ("dorr", @var{n})
+## @deftypefnx {Function File} {[@var{c},@var{d}, @var{e}] =} gallery ("dorr", @var{n}, @var{theta})
+## @deftypefnx {Function File} {@var{a} =} gallery ("dorr", @dots{})
+## Create a diagonally dominant, ill conditioned, tridiagonal matrix.
+##
+## @var{c}, @var{d}, and @var{e} are the vectors defining a row diagonally
+## dominant, tridiagonal M-matrix that is ill conditioned for small
+## values of the parameter @var{theta} >= 0 (defaults is 0.01).
+##
+## Alternatively, @var{a} is
+## @code{full (gallery ("tridiag", @var{c}, @var{d}, @var{e}))}, i.e., the
+## matrix iself is returned.
+##
+## The columns of @code{inv (@var{c})} vary greatly in norm.
+## The amount of diagonal dominance is given by (ignoring rounding errors):
+## @code{gallery ("compar", @var{c}) * ones (@var{n},1) = @var{theta}*(@var{n}+1)^2 * [1 0 0 @dots{} 0 1]'}.
+## @end deftypefn
+##
 ## @deftypefn  {Function File} {@var{c} =} gallery ("gcdmat", @var{n})
 ## Create a greatest common divisor matrix.
 ##
@@ -201,7 +219,7 @@
 ## the Toeplitz tridiagonal matrix of order @var{n} with subdiagonal
 ## elements @var{c}, diagonal elements @var{d}, and superdiagonal
 ## elements @var{e}.  This matrix has eigenvalues (Todd 1977)
-## @code{@var{d} + 2*sqrt(@var{c}*@var{e})*cos(k*pi/(@var{n}+1)), for k=1:N.
+## @code{@var{d} + 2*sqrt(@var{c}*@var{e})*cos(k*pi/(@var{n}+1))}, for k=1:N.
 ## If unspecified, @var{c}, @var{d}, @var{e}, default to -1, 2, and -1
 ## respectively, which generates a symmetric positive definite
 ## M-matrix (the negative of the second difference matrix).
@@ -223,7 +241,7 @@
 ## @code{cond (gallery ("triw", @var{n}, 2)) = cot (pi/(4*@var{n}))^2}
 ## and for large @code{abs (@var{alpha})},
 ## @code{cond (gallery ("triw", @var{n}, @var{alpha}))} is approximately
-## @code{abs (@var{alpha})^@var{n}*sin (pi/(4 * @var{n}-2)).
+## @code{abs (@var{alpha})^@var{n}*sin (pi/(4 * @var{n}-2))}.
 ##
 ## Adding @code{-2^(2-@var{n})} to the (@var{n},1) element makes
 ## @var{c} singular, as does adding @code{-2^(1-@var{n})} to all elements
@@ -265,8 +283,7 @@ function [matrix, varargout] = gallery (name, varargin)
     case "compar",      matrix = compar      (varargin{:});
     case "condex",      matrix = condex      (varargin{:});
     case "cycol",       matrix = cycol       (varargin{:});
-    case "dorr"
-      error ("gallery: matrix %s not implemented.", name);
+    case "dorr",        [matrix, varargout{1:nargout-1}] = dorr (varargin{:});
     case "dramadah"
       error ("gallery: matrix %s not implemented.", name);
     case "fiedler"
@@ -768,6 +785,57 @@ function A = cycol (n, k)
     A = [A A(:, 1:k)];
   endfor
   A = A(:, 1:n);
+endfunction
+
+function [c, d, e] = dorr (n, theta = 0.01)
+  ## DORR  Dorr matrix - diagonally dominant, ill conditioned, tridiagonal.
+  ##       [C, D, E] = DORR(N, THETA) returns the vectors defining a row diagonally
+  ##       dominant, tridiagonal M-matrix that is ill conditioned for small
+  ##       values of the parameter THETA >= 0.
+  ##       If only one output parameter is supplied then
+  ##       C = FULL(TRIDIAG(C,D,E)), i.e., the matrix iself is returned.
+  ##       The columns of INV(C) vary greatly in norm.  THETA defaults to 0.01.
+  ##       The amount of diagonal dominance is given by (ignoring rounding errors):
+  ##             COMP(C)*ONES(N,1) = THETA*(N+1)^2 * [1 0 0 ... 0 1]'.
+  ##
+  ##       Reference:
+  ##       F.W. Dorr, An example of ill-conditioning in the numerical
+  ##       solution of singular perturbation problems, Math. Comp., 25 (1971),
+  ##       pp. 271-283.
+
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 or 2 arguments are required for dorr matrix.");
+  elseif (! isscalar (n) || ! isnumeric (n))
+    error ("gallery: N must be a numeric scalar for dorr matrix.");
+  elseif (! isscalar (theta) || ! isnumeric (theta))
+    error ("gallery: THETA must be a numeric scalar for dorr matrix.");
+  endif
+
+  c = zeros (n,1);
+  e = c;
+  d = c;
+  ##  All length n for convenience.  Make c, e of length n-1 later.
+
+  h = 1/(n+1);
+  m = floor ((n+1)/2);
+  term = theta/h^2;
+
+  i = (1:m)';
+  c(i) = -term * ones (m,1);
+  e(i) = c(i) - (0.5-i*h)/h;
+  d(i) = -(c(i) + e(i));
+
+  i = (m+1:n)';
+  e(i) = -term * ones (n-m,1);
+  c(i) = e(i) + (0.5-i*h)/h;
+  d(i) = -(c(i) + e(i));
+
+  c = c(2:n);
+  e = e(1:n-1);
+
+  if (nargout <= 1)
+    c = tridiag (c, d, e);
+  endif
 endfunction
 
 function c = gcdmat (n)
