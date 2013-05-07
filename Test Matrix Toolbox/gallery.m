@@ -138,6 +138,32 @@
 ## value in its row.  However, if @var{a} is triangular @var{c} will be too.
 ## @end deftypefn
 ##
+## @deftypefn  {Function File} {@var{c} =} gallery ("condex", @var{n})
+## @deftypefnx {Function File} {@var{c} =} gallery ("condex", @var{n}, @var{k})
+## @deftypefnx {Function File} {@var{c} =} gallery ("condex", @var{n}, @var{k}, @var{theta})
+## Create a `counterexample' matrix to a condition estimator.
+##
+## @var{c} is a `conterexample' matrix of order @var{n}, and scalar parameter
+## @var{theta} (default to 100).  If @var{n} is not equal to the `natural'
+## size of the matrix then the matrix is padded out with an identity matrix
+## to order @var{n}.  The matrix, its natural size, and the estimator to which
+## it applies are specified by @var{K} as follows:
+##
+## @table @asis
+## @item 1
+## 4-by-4,     LINPACK (RCOND)
+## @item 2
+## 3-by-3,     LINPACK (RCOND)
+## @item 3
+## arbitrary,  LINPACK (RCOND) (independent of @var{theta})
+## @item 4 (default)
+## N >= 4,     SONEST (Higham 1988)
+## @end table
+##
+## Note that in practice the K = 4 matrix is not usually a
+## counterexample because of the rounding errors in forming it.
+## @end deftypefn
+##
 ## @deftypefn  {Function File} {@var{c} =} gallery ("triw", @var{n})
 ## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha})
 ## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha}, @var{k})
@@ -193,8 +219,7 @@ function [matrix, varargout] = gallery (name, varargin)
     case "circul",      matrix = circul      (varargin{:});
     case "clement",     matrix = clement     (varargin{:});
     case "compar",      matrix = compar      (varargin{:});
-    case "condex"
-      error ("gallery: matrix %s not implemented.", name);
+    case "condex",      matrix = condex      (varargin{:});
     case "cycol"
       error ("gallery: matrix %s not implemented.", name);
     case "dorr"
@@ -601,6 +626,76 @@ function C = compar (A, k = 0)
     error ("gallery: K must be 0 or 1 for compar matrix.");
   endif
 
+endfunction
+
+function A = condex (n, k = 4, theta = 100)
+  ## CONDEX   `Counterexamples' to matrix condition number estimators.
+  ##          CONDEX(N, K, THETA) is a `counterexample' matrix to a condition
+  ##          estimator.  It has order N and scalar parameter THETA (default 100).
+  ##          If N is not equal to the `natural' size of the matrix then
+  ##          the matrix is padded out with an identity matrix to order N.
+  ##          The matrix, its natural size, and the estimator to which it applies
+  ##          are specified by K (default K = 4) as follows:
+  ##              K = 1:   4-by-4,     LINPACK (RCOND)
+  ##              K = 2:   3-by-3,     LINPACK (RCOND)
+  ##              K = 3:   arbitrary,  LINPACK (RCOND) (independent of THETA)
+  ##              K = 4:   N >= 4,     SONEST (Higham 1988)
+  ##          (Note that in practice the K = 4 matrix is not usually a
+  ##           counterexample because of the rounding errors in forming it.)
+  ##
+  ##          References:
+  ##          A.K. Cline and R.K. Rew, A set of counter-examples to three
+  ##             condition number estimators, SIAM J. Sci. Stat. Comput.,
+  ##             4 (1983), pp. 602-611.
+  ##          N.J. Higham, FORTRAN codes for estimating the one-norm of a real or
+  ##             complex matrix, with applications to condition estimation
+  ##             (Algorithm 674), ACM Trans. Math. Soft., 14 (1988), pp. 381-396.
+
+  if (nargin < 1 || nargin > 3)
+    error ("gallery: 1 to 3 arguments are required for condex matrix.");
+  elseif (! isnumeric (n))
+    error ("gallery: N must be numeric for condex matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a numeric scalar for condex matrix.);
+  endif
+
+  if (k == 1)       # Cline and Rew (1983), Example B.
+     A = [1  -1  -2*theta     0
+          0   1     theta  -theta
+          0   1   1+theta  -(theta+1)
+          0   0   0         theta];
+
+  elseif (k == 2)   # Cline and Rew (1983), Example C.
+    A = [1   1-2/theta^2  -2
+         0   1/theta      -1/theta
+         0   0             1];
+
+  elseif (k == 3)   # Cline and Rew (1983), Example D.
+    A = gallery ("triw", n, -1)';
+    A(n,n) = -1;
+
+  elseif (k == 4)   # Higham (1988), p. 390.
+    x = ones (n, 3);            #  First col is e
+    x(2:n,2) = zeros (n-1, 1);  #  Second col is e(1)
+
+    ## Third col is special vector b in SONEST
+    x(:, 3) = (-1).^[0:n-1]' .* ( 1 + [0:n-1]'/(n-1) );
+
+    Q = orth (x);  #  Q*Q' is now the orthogonal projector onto span(e(1),e,b)).
+    P = eye (n) - Q*Q';
+    A = eye (n) + theta*P;
+
+  else
+    error ("gallery: unknown estimator K for condex matrix.");
+  endif
+
+  ## Pad out with identity as necessary.
+  [m, m] = size (A);
+  if m < n
+    for i = n:-1:m+1
+      A(i,i) = 1;
+    endfor
+  endif
 endfunction
 
 function t = triw (n, alpha = -1, k = -1)
