@@ -59,6 +59,20 @@
 ## The computed eigenvector matrix @var{x} from @code{eig} is
 ## ill-conditioned (@code{mesh (real (@var{x}))} is interesting).
 ## @end deftypefn
+##
+## @deftypefn  {Function File} {@var{c} =} gallery ("chebvand", @var{p})
+## @deftypefnx {Function File} {@var{c} =} gallery ("chebvand", @var{m}, @var{p})
+## Create a Vandermonde-like matrix for the Chebyshev polynomials.
+##
+## If @var{p} is a vector, produces the (primal) Chebyshev Vandermonde
+## matrix based on the points @var{p}, i.e.,
+## @var{c}(i,j) = @math{T_{i-1}}(@var{p}(j)), where @math{T_{i-1}} is
+## the Chebyshev polynomial of degree i-1.  If @var{p} is a scalar, then
+## @var{p} equally spaced points on [0,1] are used.
+##
+## If the optional argument @var{m} is specified, returns a rectangular
+## version of the matrix with @var{m} rows.
+## @end deftypefn
 
 ## Code for the individual matrices by
 ## Nicholas .J. Higham <Nicholas.J.Higham@manchester.ac.uk>
@@ -77,8 +91,7 @@ function [matrix, varargout] = gallery (name, varargin)
       error ("gallery: matrix %s not implemented.", name);
     case "cauchy",      matrix = cauchy      (varargin{:});
     case "chebspec",    matrix = chebspec    (varargin{:});
-    case "chebvand"
-      error ("gallery: matrix %s not implemented.", name);
+    case "chebvand",    matrix = chebvand    (varargin{:});
     case "chow"
       error ("gallery: matrix %s not implemented.", name);
     case "circul"
@@ -310,5 +323,63 @@ function C = chebspec (n, k = 0)
 
   if (k == 1)
      C = C(2:n+1,2:n+1);
+  endif
+endfunction
+
+function C = chebvand (m, p)
+  ## CHEBVAND Vandermonde-like matrix for the Chebyshev polynomials.
+  ##          C = CHEBVAND(P), where P is a vector, produces the (primal)
+  ##          Chebyshev Vandermonde matrix based on the points P,
+  ##          i.e., C(i,j) = T_{i-1}(P(j)), where T_{i-1} is the Chebyshev
+  ##          polynomial of degree i-1.
+  ##          CHEBVAND(M,P) is a rectangular version of CHEBVAND(P) with M rows.
+  ##          Special case: If P is a scalar then P equally spaced points on
+  ##                        [0,1] are used.
+  ##
+  ##          Reference:
+  ##          N.J. Higham, Stability analysis of algorithms for solving confluent
+  ##            Vandermonde-like systems, SIAM J. Matrix Anal. Appl., 11 (1990),
+  ##            pp. 23-41.
+
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 or 2 arguments are required for Chebvand matrix.");
+  endif
+
+  if (nargin == 1)
+    p = m;
+  endif
+  n = length (p);
+
+  if (n == 1)
+     n = p;
+     p = seqa (0, 1, n);
+  endif
+
+  if (nargin == 1)
+    m = n;
+  endif
+
+  p = p(:).'; # Ensure p is a row vector.
+  C = ones (m, n);
+  if (m != 1)
+    C(2,:) = p;
+    ##      Use Chebyshev polynomial recurrence.
+    for i = 3:m
+        C(i,:) = 2.*p.*C(i-1,:) - C(i-2,:);
+    endfor
+  endif
+endfunction
+
+
+## subfunction used by the some of the matrix generating functions
+function y = seqa (a, b, n = 10)
+  ## SEQA   Additive sequence.
+  ##        Y = SEQA(A, B, N) produces a row vector comprising N equally
+  ##        spaced numbers starting at A and finishing at B.
+  ##        If N is omitted then 10 points are generated.
+  if (n <= 1)
+     y = a;
+  else
+    y = [a+(0:n-2)*(b-a)/(n-1), b];
   endif
 endfunction
