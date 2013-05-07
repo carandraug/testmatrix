@@ -188,6 +188,25 @@
 ## correspond @code{gcd (i, j)}.
 ## @end deftypefn
 ##
+## @deftypefn  {Function File} {@var{a} =} gallery ("tridiag", @var{x}, @var{y}, @var{z})
+## @deftypefnx {Function File} {@var{a} =} gallery ("tridiag", @var{n})
+## @deftypefnx {Function File} {@var{a} =} gallery ("tridiag", @var{n}, @var{c}, @var{d}, @var{e})
+## Create a tridiagonal matrix (sparse).
+##
+## @var{a} is the tridiagonal matrix with subdiagonal @var{x},
+## diagonal @var{y}, and superdiagonal @var{z}.   @var{x} and @var{z}
+## must be vectors of length one less than @var{y}.
+##
+## Alternatively if @var{c}, @var{d}, and @var{e} are all scalars, yields
+## the Toeplitz tridiagonal matrix of order @var{n} with subdiagonal
+## elements @var{c}, diagonal elements @var{d}, and superdiagonal
+## elements @var{e}.  This matrix has eigenvalues (Todd 1977)
+## @code{@var{d} + 2*sqrt(@var{c}*@var{e})*cos(k*pi/(@var{n}+1)), for k=1:N.
+## If unspecified, @var{c}, @var{d}, @var{e}, default to -1, 2, and -1
+## respectively, which generates a symmetric positive definite
+## M-matrix (the negative of the second difference matrix).
+## @end deftypefn
+##
 ## @deftypefn  {Function File} {@var{c} =} gallery ("triw", @var{n})
 ## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha})
 ## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha}, @var{k})
@@ -333,8 +352,7 @@ function [matrix, varargout] = gallery (name, varargin)
       error ("gallery: matrix %s not implemented.", name);
     case "toeppd"
       error ("gallery: matrix %s not implemented.", name);
-    case "tridiag"
-      error ("gallery: matrix %s not implemented.", name);
+    case "tridiag",     matrix = tridiag     (varargin{:});
     case "triw",        matrix = triw        (varargin{:});
     case "uniformdata"
       error ("gallery: matrix %s not implemented.", name);
@@ -759,6 +777,54 @@ function c = gcdmat (n)
     error ("gallery: N must be a numeric scalar for gcdmat matrix.");
   endif
   c = gcd (repmat ((1:n)', [1 n]), repmat (1:n, [n 1]));
+endfunction
+
+function T = tridiag (n, x = -1, y = 2, z = -1)
+  ## TRIDIAG  Tridiagonal matrix (sparse).
+  ##          TRIDIAG(X, Y, Z) is the tridiagonal matrix with subdiagonal X,
+  ##          diagonal Y, and superdiagonal Z.
+  ##          X and Z must be vectors of dimension one less than Y.
+  ##          Alternatively TRIDIAG(N, C, D, E), where C, D, and E are all
+  ##          scalars, yields the Toeplitz tridiagonal matrix of order N
+  ##          with subdiagonal elements C, diagonal elements D, and superdiagonal
+  ##          elements E.   This matrix has eigenvalues (Todd 1977)
+  ##                   D + 2*SQRT(C*E)*COS(k*PI/(N+1)), k=1:N.
+  ##          TRIDIAG(N) is the same as TRIDIAG(N,-1,2,-1), which is
+  ##          a symmetric positive definite M-matrix (the negative of the
+  ##          second difference matrix).
+  ##
+  ##          References:
+  ##          J. Todd, Basic Numerical Mathematics, Vol. 2: Numerical Algebra,
+  ##            Birkhauser, Basel, and Academic Press, New York, 1977, p. 155.
+  ##          D.E. Rutherford, Some continuant determinants arising in physics and
+  ##            chemistry---II, Proc. Royal Soc. Edin., 63, A (1952), pp. 232-241.
+
+  if (nargin != 1 && nargin != 3 && nargin != 4)
+    error ("gallery: 1, 3, or 4 arguments are required for tridiag matrix.");
+  elseif (nargin == 3)
+    z = y;
+    y = x;
+    x = n;
+  endif
+
+  ## Force column vectors
+  x = x(:);
+  y = y(:);
+  z = z(:);
+
+  if (isscalar (x) && isscalar (y) && isscalar (z))
+    x *= ones (n-1, 1);
+    z *= ones (n-1, 1);
+    y *= ones (n,   1);
+  elseif (numel (y) != numel (x) + 1)
+    error ("gallery: X must have one element less than Y for tridiag matrix.");
+  elseif (numel (y) != numel (z) + 1)
+    error ("gallery: Z must have one element less than Y for tridiag matrix.");
+  endif
+
+  ##  T = diag (x, -1) + diag (y) + diag (z, 1);  # For non-sparse matrix.
+  n = length (y);
+  T = spdiags ([[x;0] y [0;z]], -1:1, n, n);
 endfunction
 
 function t = triw (n, alpha = -1, k = -1)
