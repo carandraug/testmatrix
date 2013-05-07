@@ -990,8 +990,8 @@ function C = cauchy (x, y)
 
   n = length (x);
   if (n == 1)
-     n = x;
-     x = 1:n;
+    n = x;
+    x = 1:n;
   endif
 
   if (nargin == 1)
@@ -1055,19 +1055,19 @@ function C = chebspec (n, k = 0)
   ##  Now fix diagonal and signs.
   C(1,1) = (2*n^2+1)/6;
   for i = 2:n+1
-      if (rem (i, 2) == 0)
-         C(:,i) = -C(:,i);
-         C(i,:) = -C(i,:);
-      endif
-      if (i < n+1)
-         C(i,i) = -x(i)/(2*(1-x(i)^2));
-      else
-         C(n+1,n+1) = -C(1,1);
-      endif
+    if (rem (i, 2) == 0)
+      C(:,i) = -C(:,i);
+      C(i,:) = -C(i,:);
+    endif
+    if (i < n+1)
+      C(i,i) = -x(i)/(2*(1-x(i)^2));
+    else
+      C(n+1,n+1) = -C(1,1);
+    endif
   endfor
 
   if (k == 1)
-     C = C(2:n+1,2:n+1);
+    C = C(2:n+1,2:n+1);
   endif
 endfunction
 
@@ -1110,7 +1110,7 @@ function C = chebvand (m, p)
     C(2,:) = p;
     ##      Use Chebyshev polynomial recurrence.
     for i = 3:m
-        C(i,:) = 2.*p.*C(i-1,:) - C(i-2,:);
+      C(i,:) = 2.*p.*C(i-1,:) - C(i-2,:);
     endfor
   endif
 endfunction
@@ -1163,8 +1163,8 @@ function C = circul (v)
 
   n = length (v);
   if n == 1
-     n = v;
-     v = 1:n;
+    n = v;
+    v = 1:n;
   endif
 
   v = v(:).';   # Make sure v is a row vector
@@ -1205,10 +1205,10 @@ function A = clement (n, k = 0)
   z = 1:n;
 
   if (k == 0)
-     A = diag (x, -1) + diag (z, 1);
+    A = diag (x, -1) + diag (z, 1);
   else
-     y = sqrt (x.*z);
-     A = diag (y, -1) + diag (y, 1);
+    y = sqrt (x.*z);
+    A = diag (y, -1) + diag (y, 1);
   endif
 endfunction
 
@@ -1239,7 +1239,7 @@ function C = compar (A, k = 0)
     C = -abs (A);
     for j = 1:p
       C(j,j) = abs (A(j,j));
-    end
+    endfor
 
   elseif (k == 1)
     C = A';
@@ -1292,10 +1292,10 @@ function A = condex (n, k = 4, theta = 100)
   endif
 
   if (k == 1)       # Cline and Rew (1983), Example B.
-     A = [1  -1  -2*theta     0
-          0   1     theta  -theta
-          0   1   1+theta  -(theta+1)
-          0   0   0         theta];
+    A = [1  -1  -2*theta     0
+         0   1     theta  -theta
+         0   1   1+theta  -(theta+1)
+         0   0   0         theta];
 
   elseif (k == 2)   # Cline and Rew (1983), Example C.
     A = [1   1-2/theta^2  -2
@@ -1557,7 +1557,7 @@ function F = frank (n, k = 0)
   p = n:-1:1;
   F = triu( p( ones(n,1), :) - diag( ones(n-1,1), -1), -1 );
   if (k != 0)
-     F = F(p,p)';
+    F = F(p,p)';
   endif
 endfunction
 
@@ -1630,7 +1630,7 @@ function A = hanowa (n, d = -1)
 
   m = n/2;
   if round(m) ~= m
-     error('N must be even.')
+    error('N must be even.')
   end
 
   A = [ d*eye(m) -diag(1:m)
@@ -1677,6 +1677,7 @@ function [v, beta] = house (x)
     beta = 1/(s'*v(1));                        % NB the conjugated s.
     ##  beta = 1/(abs(s)*(abs(s)+abs(x(1)) would guarantee beta real.
     ##  But beta as above can be non-real (due to rounding) only when x is complex.
+  endif
 endfunction
 
 function A = invhess (x, y)
@@ -1705,8 +1706,8 @@ function A = invhess (x, y)
   n = max(size(x));
   ##   Handle scalar x.
   if n == 1
-     n = x;
-     x = 1:n;
+    n = x;
+    x = 1:n;
   endif
   x = x(:);
 
@@ -1716,7 +1717,7 @@ function A = invhess (x, y)
   ##  On next line, z = x'; A = z(ones(n,1),:) would be more efficient.
   A = ones(n,1)*x';  
   for j=2:n
-      A(1:j-1,j) = y(1:j-1);
+    A(1:j-1,j) = y(1:j-1);
   endfor
 endfunction
 
@@ -1738,8 +1739,8 @@ function A = invol (n)
   A(:, 1) = d*A(:, 1);
 
   for i = 1:n-1
-      d = -(n+i)*(n-i)*d/(i*i);
-      A(i+1, :) = d*A(i+1, :);
+    d = -(n+i)*(n-i)*d/(i*i);
+    A(i+1, :) = d*A(i+1, :);
   endfor
 endfunction
 
@@ -1858,7 +1859,7 @@ function A = kms (n, rho = 0.5)
   A = abs(A - A');
   A = rho .^ A;
   if imag(rho)
-     A = conj(tril(A,-1)) + triu(A);
+    A = conj(tril(A,-1)) + triu(A);
   endif
 endfunction
 
@@ -1877,8 +1878,8 @@ function B = krylov (A, x, j)
   [n, n] = size(A);
 
   if n == 1   % Handle special case A = scalar.
-     n = A;
-     A = randn(n);
+    n = A;
+    A = randn(n);
   endif
 
   if nargin < 3, j = n; end
@@ -1888,7 +1889,7 @@ function B = krylov (A, x, j)
   B = ones(n,j);
   B(:,1) = x(:);
   for i=2:j
-      B(:,i) = A*B(:,i-1);
+    B(:,i) = A*B(:,i-1);
   endfor
 endfunction
 
@@ -2587,7 +2588,7 @@ function t = triw (n, alpha = -1, k = -1)
   if (nargin < 1 || nargin > 3)
     error ("gallery: 1 to 3 arguments are required for triw matrix.");
   elseif (! isscalar (alpha))
-     error("gallery: ALPHA must be a scalar for triw matrix.")
+    error("gallery: ALPHA must be a scalar for triw matrix.")
   endif
 
   m = n(1);              # Parameter n specifies dimension: m-by-n.
@@ -2673,7 +2674,7 @@ function A = wathen (nx, ny, k = 0)
 
   if ( nargin < 2 )
     error ( 'Two dimensioning arguments must be specified.' )
-  end
+  endif
 
   e1 = [ 6  -6   2 -8; ...
         -6  32  -6 20; ...
@@ -2723,7 +2724,7 @@ function A = wathen (nx, ny, k = 0)
   ## 
   if ( k == 1 )
     A = diag ( diag ( A ) ) \ A;
-  end
+  endif
 endfunction
 
 function [A, b] = wilk (n)
