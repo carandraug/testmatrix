@@ -1096,8 +1096,8 @@ function C = chebvand (m, p)
   n = length (p);
 
   if (n == 1)
-     n = p;
-     p = seqa (0, 1, n);
+    n = p;
+    p = linspace (0, 1, n);
   endif
 
   if (nargin == 1)
@@ -2770,19 +2770,5 @@ function [A, b] = wilk (n)
 
   else
     error('Sorry, that value of N is not available.')
-  endif
-endfunction
-
-
-## subfunction used by the some of the matrix generating functions
-function y = seqa (a, b, n = 10)
-  ## SEQA   Additive sequence.
-  ##        Y = SEQA(A, B, N) produces a row vector comprising N equally
-  ##        spaced numbers starting at A and finishing at B.
-  ##        If N is omitted then 10 points are generated.
-  if (n <= 1)
-     y = a;
-  else
-    y = [a+(0:n-2)*(b-a)/(n-1), b];
   endif
 endfunction
