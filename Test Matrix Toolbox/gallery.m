@@ -123,6 +123,20 @@
 ## @code{y = zeros (@var{n}, 1)}.  The eigenvalues still come in plus/minus
 ## pairs but they are not known explicitly
 ## @end deftypefn
+##
+## @deftypefn  {Function File} {@var{c} =} gallery ("compar", @var{a})
+## @deftypefnx {Function File} {@var{c} =} gallery ("compar", @var{a}, 1)
+## Create a comparison matrix.
+##
+## @var{c} is @code{diag(@var{b}) - tril (@var{b}, -1) - triu (@var{b} ,1),
+## where @code{@var{b} = abs (@var{a})}.  This is often denoted by M(@var{a})
+## in the literature.
+##
+## If the second argument is 1, @var{c} is @var{a} with each diagonal
+## element replaced by its absolute value, and each off-diagonal element
+## replaced by minus the absolute value of the largest element in absolute
+## value in its row.  However, if @var{a} is triangular @var{c} will be too.
+## @end deftypefn
 
 ## Code for the individual matrices by
 ## Nicholas .J. Higham <Nicholas.J.Higham@manchester.ac.uk>
@@ -136,6 +150,16 @@ function [matrix, varargout] = gallery (name, varargin)
     error ("gallery: NAME must be a string.");
   endif
 
+  ## NOTE: there isn't a lot of input check in the individual functions
+  ## that actually build the functions.  This is by design. The original
+  ## code by Higham did not perform it and was propagated to Matlab, so
+  ## for compatibility, we also don't make it. For example, arguments
+  ## that behave as switches, and in theory accepting a value of 0 or 1,
+  ## will use a value of 0, for any value other than 1 (only check made
+  ## is if the value is equal to 1). It will often also accept string
+  ## values instead of numeric. Only input check added was where it
+  ## would be causing an error anyway.
+
   switch (tolower (name))
     case "binomial"
       error ("gallery: matrix %s not implemented.", name);
@@ -145,8 +169,7 @@ function [matrix, varargout] = gallery (name, varargin)
     case "chow",        matrix = chow        (varargin{:});
     case "circul",      matrix = circul      (varargin{:});
     case "clement",     matrix = clement     (varargin{:});
-    case "compar"
-      error ("gallery: matrix %s not implemented.", name);
+    case "compar",      matrix = compar      (varargin{:});
     case "condex"
       error ("gallery: matrix %s not implemented.", name);
     case "cycol"
@@ -333,10 +356,6 @@ function C = chebspec (n, k = 0)
     error ("gallery: N must be a numeric scalar.");
   endif
 
-  ## No check for k. The original code did not make this check and
-  ## apparently matlab did not add it either. So while undocumented,
-  ## for matlab compatibility K is 0 for ANYTHING other than a value of 1
-
   ## k = 1 case obtained from k = 0 case with one bigger n.
   if (k == 1)
     n = n + 1;
@@ -512,6 +531,54 @@ function A = clement (n, k = 0)
      y = sqrt (x.*z);
      A = diag (y, -1) + diag (y, 1);
   endif
+endfunction
+
+function C = compar (A, k = 0)
+  ## COMP    Comparison matrices.
+  ##         COMP(A) is DIAG(B) - TRIL(B,-1) - TRIU(B,1), where B = ABS(A).
+  ##         COMP(A, 1) is A with each diagonal element replaced by its
+  ##         absolute value, and each off-diagonal element replaced by minus
+  ##         the absolute value of the largest element in absolute value in
+  ##         its row.  However, if A is triangular COMP(A, 1) is too.
+  ##         COMP(A, 0) is the same as COMP(A).
+  ##         COMP(A) is often denoted by M(A) in the literature.
+  ##
+  ##         Reference (e.g.):
+  ##         N.J. Higham, A survey of condition number estimation for
+  ##         triangular matrices, SIAM Review, 29 (1987), pp. 575-596.
+
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 or 2 arguments are required for compar matrix.");
+  endif
+
+  [m, n] = size (A);
+  p = min (m, n);
+
+  if (k == 0)
+    ## This code uses less temporary storage than
+    ## the `high level' definition above.
+    C = -abs (A);
+    for j = 1:p
+      C(j,j) = abs (A(j,j));
+    end
+
+  elseif (k == 1)
+    C = A';
+    for j = 1:p
+      C(k,k) = 0;
+    endfor
+    mx = max (abs (C));
+    C  = -mx'*ones (1, n);
+    for j = 1:p
+      C(j,j) = abs (A(j,j));
+    endfor
+    if (all (A == tril (A))), C = tril(C); endif
+    if (all (A == triu (A))), C = triu(C); endif
+
+  else
+    error ("gallery: K must be 0 or 1 for compar matrix.");
+  endif
+
 endfunction
 
 
