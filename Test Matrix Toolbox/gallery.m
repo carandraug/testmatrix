@@ -164,6 +164,22 @@
 ## counterexample because of the rounding errors in forming it.
 ## @end deftypefn
 ##
+## @deftypefn  {Function File} {@var{c} =} gallery ("cycol", [@var{m} @var{n}])
+## @deftypefnx {Function File} {@var{c} =} gallery ("cycol", @var{n})
+## @deftypefnx {Function File} {@var{c} =} gallery (@dots{}, @var{k})
+## Create a matrix whose columns repeat cyclically.
+##
+## @var{c} is an @var{m}-by-@var{n} matrix of the form
+## @var{c} = B(1:@var{m},1:@var{n}), where B = [A A A @dots{}] and
+## @code{A = randn (@var{m}, @var{k})}.  Thus @var{c}'s columns repeat
+## cyclically, and @var{c} has rank at most @var{K}.   @var{k} need not
+## divide @var{n}.  @var{k} defaults to @code{round (@var{n}/4)}.  If
+## @var{n} is a scalar, @var{c} is a @var{n}-by-@var{n} matrix.
+##
+## This type of matrix can lead to underflow problems for Gaussian
+## elimination: see NA Digest Volume 89, Issue 3 (January 22, 1989).
+## @end deftypefn
+##
 ## @deftypefn  {Function File} {@var{c} =} gallery ("triw", @var{n})
 ## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha})
 ## @deftypefnx {Function File} {@var{c} =} gallery ("triw", @var{n}, @var{alpha}, @var{k})
@@ -220,8 +236,7 @@ function [matrix, varargout] = gallery (name, varargin)
     case "clement",     matrix = clement     (varargin{:});
     case "compar",      matrix = compar      (varargin{:});
     case "condex",      matrix = condex      (varargin{:});
-    case "cycol"
-      error ("gallery: matrix %s not implemented.", name);
+    case "cycol",       matrix = cycol       (varargin{:});
     case "dorr"
       error ("gallery: matrix %s not implemented.", name);
     case "dramadah"
@@ -696,6 +711,37 @@ function A = condex (n, k = 4, theta = 100)
       A(i,i) = 1;
     endfor
   endif
+endfunction
+
+function A = cycol (n, k)
+  ## CYCOL   Matrix whose columns repeat cyclically.
+  ##         A = CYCOL([M N], K) is an M-by-N matrix of the form A = B(1:M,1:N)
+  ##         where B = [C C C...] and C = RANDN(M, K).  Thus A's columns repeat
+  ##         cyclically, and A has rank at most K.   K need not divide N.
+  ##         K defaults to ROUND(N/4).
+  ##         CYCOL(N, K), where N is a scalar, is the same as CYCOL([N N], K).
+  ##
+  ##         This type of matrix can lead to underflow problems for Gaussian
+  ##         elimination: see NA Digest Volume 89, Issue 3 (January 22, 1989).
+
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 or 2 arguments are required for cycol matrix.");
+  elseif (! isscalar (k))
+    error ("gallery: K must be a scalar for cycol matrix.);
+  endif
+
+  m = n(1);              # Parameter n specifies dimension: m-by-n.
+  n = n(length (n));
+
+  if (nargin < 2)
+    k = max (round (n/4), 1);
+  endif
+
+  A = randn (m, k);
+  for i = 2:ceil (n/k)
+    A = [A A(:, 1:k)];
+  endfor
+  A = A(:, 1:n);
 endfunction
 
 function t = triw (n, alpha = -1, k = -1)
