@@ -2469,15 +2469,21 @@ function T = toeppd (n, m = n, w = rand (m,1), theta = rand (m,1))
   ##          a symmetric positive definite Toeplitz matrix, SIAM J. Sci. Stat.
   ##          Comput., 7 (1986), pp. 123-131.
 
-  if max(size(w)) ~= m || max(size(theta)) ~= m
-    error('Arguments W and THETA must be vectors of length M.')
+  if (nargin < 1 || nargin > 4)
+    error ("gallery: 1 to 4 arguments are required for toeppd matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be a numeric integer for toeppd matrix.");
+  elseif (! isnumeric (m) || ! isscalar (m) || fix (m) != m)
+    error ("gallery: M must be a numeric integer for toeppd matrix.");
+  elseif (numel (w) != m || numel (theta) ! = m)
+    error ("gallery: W and THETA must be vectors of length M for toeppd matrix.");
   endif
 
-  T = zeros(n);
-  E = 2*pi*( (1:n)'*ones(1,n) - ones(n,1)*(1:n) );
+  T = zeros (n);
+  E = 2*pi * ((1:n)' * ones (1, n) - ones (n, 1) * (1:n));
 
-  for i=1:m
-    T = T + w(i) * cos( theta(i)*E );
+  for i = 1:m
+    T = T + w(i) * cos (theta(i)*E);
   endfor
 endfunction
 
@@ -2504,8 +2510,16 @@ function P = toeppen (n, a = 1, b = -10, c = 0, d = 10, e = 1)
   ##              Numeriques, Editions Centre Nat. Recherche Sci., Paris, 165,
   ##              1966, pp. 349-365.
 
-  P = spdiags([ a*ones(n,1) b*ones(n,1) c*ones(n,1) d*ones(n,1) ...
-                e*ones(n,1) ], -2:2, n, n);
+  if (nargin < 1 || nargin > 6)
+    error ("gallery: 1 to 6 arguments are required for toeppen matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be a numeric integer for toeppen matrix.");
+  elseif (any (cellfun (@(x) ! isnumeric (x) || ! isscalar (x), {a b c d e})))
+    error ("gallery: A, B, C, D and E must be numeric scalars for toeppen matrix.");
+  endif
+
+  P = spdiags ([a*ones(n,1) b*ones(n,1) c*ones(n,1) d*ones(n,1) e*ones(n,1)],
+                -2:2, n, n);
 endfunction
 
 function T = tridiag (n, x = -1, y = 2, z = -1)
@@ -2552,7 +2566,7 @@ function T = tridiag (n, x = -1, y = 2, z = -1)
   endif
 
   ##  T = diag (x, -1) + diag (y) + diag (z, 1);  # For non-sparse matrix.
-  n = length (y);
+  n = numel (y);
   T = spdiags ([[x;0] y [0;z]], -1:1, n, n);
 endfunction
 
@@ -2588,12 +2602,16 @@ function t = triw (n, alpha = -1, k = -1)
 
   if (nargin < 1 || nargin > 3)
     error ("gallery: 1 to 3 arguments are required for triw matrix.");
+  elseif (! isnumeric (n) || all (numel (n) != [1 2]))
+    error("gallery: N must be a 1 or 2 elements vector for triw matrix.")
   elseif (! isscalar (alpha))
     error("gallery: ALPHA must be a scalar for triw matrix.")
+  elseif (! isscalar (k) || ! isnumeric (k) || fix (k) != k)
+    error("gallery: K must be a numeric integer for triw matrix.")
   endif
 
   m = n(1);              # Parameter n specifies dimension: m-by-n.
-  n = n(length (n));
+  n = n(end);
 
   t = tril (eye (m, n) + alpha * triu (ones (m, n), 1), k);
 endfunction
@@ -2655,9 +2673,9 @@ function A = wathen (nx, ny, k = 0)
   ##     ACM Transactions on Mathematical Software,
   ##     Volume 17, Number 3, September 1991, pages 289-305.
   ##
-  ##     Andrew Wathen, 
-  ##     Realistic eigenvalue bounds for the Galerkin mass matrix, 
-  ##     IMA Journal of Numerical Analysis, 
+  ##     Andrew Wathen,
+  ##     Realistic eigenvalue bounds for the Galerkin mass matrix,
+  ##     IMA Journal of Numerical Analysis,
   ##     Volume 7, 1987, pages 449-457.
   ##
   ##   Parameters:
@@ -2671,60 +2689,65 @@ function A = wathen (nx, ny, k = 0)
   ##
   ##     Output, sparse real A(N,N), the matrix.  The dimension N is determined by
   ##     NX and NY, as described above.  A is stored in the MATLAB sparse matrix
-  ##     format.  
+  ##     format.
 
-  if ( nargin < 2 )
-    error ( 'Two dimensioning arguments must be specified.' )
+  if (nargin < 2 || nargin > 3)
+    error ("gallery: 2 or 3 arguments are required for wathen matrix.");
+  elseif (! isnumeric (nx) || ! isscalar (nx) || nx < 1)
+    error ("gallery: NX must be a positive scalar for wathen matrix.");
+  elseif (! isnumeric (ny) || ! isscalar (ny) || ny < 1)
+    error ("gallery: NY must be a positive scalar for wathen matrix.");
+  elseif (! isscalar (k))
+    error ("gallery: K must be a scalar for wathen matrix.");
   endif
 
-  e1 = [ 6  -6   2 -8; ...
-        -6  32  -6 20; ...
-         2  -6   6 -6; ...
-        -8  20  -6 32 ];
+  e1 = [ 6  -6   2  -8
+        -6  32  -6  20
+         2  -6   6  -6
+        -8  20  -6  32 ];
 
-  e2 = [ 3  -8   2  -6; ... 
-        -8  16  -8  20; ...
-         2  -8   3  -8; ...
+  e2 = [ 3  -8   2  -6
+        -8  16  -8  20
+         2  -8   3  -8
         -6  20  -8  16 ];
 
-  e = [ e1  e2; ...
-        e2' e1] / 45.0;
+  e = [ e1  e2
+        e2' e1] / 45;
 
-  n = 3 * nx * ny + 2 * nx + 2 * ny + 1;
+  n = 3*nx*ny + 2*nx + 2*ny + 1;
 
-  A = sparse ( n, n );
+  A = sparse (n, n);
 
-  rho = 100.0 * rand ( nx, ny );
+  rho = 100 * rand (nx, ny);
 
-  for j = 1 : ny
-    for i = 1 : nx
+  for j = 1:ny
+    for i = 1:nx
       ## 
       ##   For the element (I,J), determine the indices of the 8 nodes.
       ## 
-      nn(1) = 3 * j * nx + 2 * i + 2 * j + 1;
+      nn(1) = 3*j*nx + 2*i + 2*j + 1;
       nn(2) = nn(1) - 1;
       nn(3) = nn(2) - 1;
-      nn(4) = ( 3 * j - 1 ) * nx + 2 * j + i - 1;
-      nn(5) = 3 * ( j - 1 ) * nx + 2 * i + 2 * j - 3;
+      nn(4) = (3*j - 1) * nx + 2*j + i - 1;
+      nn(5) = 3 * (j-1) * nx + 2*i + 2*j - 3;
       nn(6) = nn(5) + 1;
       nn(7) = nn(6) + 1;
       nn(8) = nn(4) + 1;
 
       em = e * rho(i,j);
 
-      for krow = 1 : 8
-        for kcol = 1 : 8
+      for krow = 1:8
+        for kcol = 1:8
           A(nn(krow),nn(kcol)) = A(nn(krow),nn(kcol)) + em(krow,kcol);
         endfor
       endfor
 
     endfor
   endfor
-  ## 
-  ##   If requested, return A with diagonal scaling.
-  ## 
-  if ( k == 1 )
-    A = diag ( diag ( A ) ) \ A;
+
+  ## If requested, return A with diagonal scaling.
+  if (k)
+    A = diag (diag (A)) \ A;
   endif
 endfunction
 
@@ -2744,33 +2767,46 @@ function [A, b] = wilk (n)
   ##        J.H. Wilkinson, The Algebraic Eigenvalue Problem, Oxford University
   ##           Press, 1965.
 
-  if n == 3
-    ## Wilkinson (1961) p.323.
-    A = [ 1e-10   .9  -.4
-            0     .9  -.4
-            0      0  1e-10];
-    b = [   0      0    1]';
+  if (nargin != 1)
+    error ("gallery: only 1 arguments is required for wilk matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n))
+    error ("gallery: N must be a numeric scalar for wilk matrix.");
+  endif
 
-  elseif n == 4
+  if (n == 3)
+    ## Wilkinson (1961) p.323.
+    A = [ 1e-10   0.9  -0.4
+          0       0.9  -0.4
+          0       0     1e-10 ];
+
+    b = [ 0
+          0
+          1];
+
+  elseif (n == 4)
     ## Wilkinson (1963) p.105.
     A = [0.9143e-4  0          0          0
          0.8762     0.7156e-4  0          0
          0.7943     0.8143     0.9504e-4  0
          0.8017     0.6123     0.7165     0.7123e-4];
-    b = [0.6524     0.3127     0.4186     0.7853]';
 
-  elseif n == 5
+    b = [0.6524
+         0.3127
+         0.4186
+         0.7853];
+
+  elseif (n == 5)
     ## Wilkinson (1965), p.234.
-    A = hilb(6);
-    A = A(1:5, 2:6)*1.8144;
+    A = hilb (6);
+    A = A(1:5, 2:6) * 1.8144;
 
-  elseif n == 21
-    ## Taken from gallery.m.  Wilkinson (1965), p.308.
-    E = diag(ones(n-1,1),1);
+  elseif (n == 21)
+    ## Wilkinson (1965), p.308.
+    E = diag (ones (n-1, 1), 1);
     m = (n-1)/2;
-    A = diag(abs(-m:m)) + E + E';
+    A = diag (abs (-m:m)) + E + E';
 
   else
-    error('Sorry, that value of N is not available.')
+    error("gallery: unknown N %d for wilk matrix.", n);
   endif
 endfunction
