@@ -921,7 +921,7 @@ function [matrix, varargout] = gallery (name, varargin)
     case "lotkin"     , matrix = lotkin      (varargin{:});
     case "minij"      , matrix = minij       (varargin{:});
     case "moler"      , matrix = moler       (varargin{:});
-    case "neumann"    , [matrix, varargout{1}] = newumann (varargin{:});
+    case "neumann"    , [matrix, varargout{1}] = neumann (varargin{:});
     case "normaldata"
       error ("gallery: matrix %s not implemented.", name);
     case "orthog"     , matrix = orthog      (varargin{:});
@@ -1905,8 +1905,16 @@ function A = lauchli (n, mu = sqrt (eps))
   ##           P. Lauchli, Jordan-Elimination und Ausgleichung nach
   ##           kleinsten Quadraten, Numer. Math, 3 (1961), pp. 226-240.
 
-  A = [ones(1,n);
-       mu*eye(n)];
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for lauchli matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error("gallery: N must be an integer for lauchli matrix.")
+  elseif (! isscalar (mu))
+    error("gallery: MU must be a scalar for lauchli matrix.")
+  endif
+
+  A = [ones(1, n)
+       mu*eye(n) ];
 endfunction
 
 function A = lehmer (n)
@@ -1925,9 +1933,15 @@ function A = lehmer (n)
   ##         J. Todd, Basic Numerical Mathematics, Vol. 2: Numerical Algebra,
   ##            Birkhauser, Basel, and Academic Press, New York, 1977, p. 154.
 
-  A = ones(n,1)*(1:n);
+  if (nargin != 1)
+    error ("gallery: 1 argument is required for lehmer matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for lehmer matrix.");
+  endif
+
+  A = ones (n, 1) * (1:n);
   A = A./A';
-  A = tril(A) + tril(A,-1)';
+  A = tril (A) + tril (A, -1)';
 endfunction
 
 function T = lesp (n)
@@ -1950,8 +1964,14 @@ function T = lesp (n)
   ##             Mathematics, volume 260, Longman Scientific and Technical, Essex,
   ##             UK, 1992, pp. 234-266.
 
+  if (nargin != 1)
+    error ("gallery: 1 argument is required for lesp matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for lesp matrix.");
+  endif
+
   x = 2:n;
-  T = full(tridiag( ones(size(x))./x, -(2*[x n+1]+1), x));
+  T = full (tridiag (ones (size (x)) ./x, -(2*[x n+1]+1), x));
 endfunction
 
 function A = lotkin (n)
@@ -1964,11 +1984,17 @@ function A = lotkin (n)
   ##         Reference:
   ##         M. Lotkin, A set of test matrices, MTAC, 9 (1955), pp. 153-161.
 
-  A = hilb(n);
-  A(1,:) = ones(1,n);
+  if (nargin != 1)
+    error ("gallery: 1 argument is required for lotkin matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for lotkin matrix.");
+  endif
+
+  A = hilb (n);
+  A(1,:) = ones (1, n);
 endfunction
 
-function A = minij(n)
+function A = minij (n)
   ## MINIJ   Symmetric positive definite matrix MIN(i,j).
   ##         A = MINIJ(N) is the N-by-N symmetric positive definite matrix with
   ##         A(i,j) = MIN(i,j).
@@ -1986,7 +2012,13 @@ function A = minij(n)
   ##            chemistry---II, Proc. Royal Soc. Edin., 63, A (1952), pp. 232-241.
   ##            (For the eigenvalues of Givens' matrix.)
 
-  A = min( ones(n,1)*(1:n), (1:n)'*ones(1,n) );
+  if (nargin != 1)
+    error ("gallery: 1 argument is required for minij matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for minij matrix.");
+  endif
+
+  A = min (ones (n, 1) * (1:n), (1:n)' * ones (1, n));
 endfunction
 
 function A = moler (n, alpha = -1)
@@ -2003,7 +2035,15 @@ function A = moler (n, alpha = -1)
   ##         Algebra and Function Minimisation, second edition, Adam Hilger,
   ##         Bristol, 1990 (Appendix 1).
 
-  A = triw(n, alpha)'*triw(n, alpha);
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for moler matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error("gallery: N must be an integer for moler matrix.")
+  elseif (! isscalar (alpha))
+    error("gallery: ALPHA must be a scalar for moler matrix.")
+  endif
+
+  A = triw (n, alpha)' * triw (n, alpha);
 endfunction
 
 function [A, T] = neumann (n)
@@ -2019,19 +2059,29 @@ function [A, T] = neumann (n)
   ##          R.J. Plemmons, Regular splittings and the discrete Neumann
   ##          problem, Numer. Math., 25 (1976), pp. 153-161.
 
-  if max(size(n)) == 1
-    m = sqrt(n);
-    if m^2 ~= n,
-      error('N must be a perfect square.');
-    endif
-    n(1) = m; n(2) = m;
+
+  if (nargin != 1)
+    error ("gallery: 1 argument is required for neumann matrix.");
+  elseif (! isnumeric (n) || all (numel (n) != [1 2]) || fix (n) != n)
+    error ("gallery: N must be a 1 or 2 element integer for neumann matrix.");
   endif
 
-  T = tridiag(n(1), -1, 2, -1);
+  if (isscalar (n))
+    m = sqrt (n);
+    if (m^2 != n)
+      error ("gallery: N must be a perfect square for neumann matrix.");
+    endif
+    n(1) = m;
+    n(2) = m;
+  endif
+
+  T = tridiag (n(1), -1, 2, -1);
   T(1,2) = -2;
   T(n(1),n(1)-1) = -2;
 
-  A = kron(T, eye(n(2))) + kron(eye(n(2)), T);
+  ## FIXME: the call to sparse() is due to https://savannah.gnu.org/bugs/?38954
+  ##        and should be removed once that is fixed
+  A = kron (T, eye (n(2))) + sparse (kron (eye (n(2)), T));
 endfunction
 
 function Q = orthog (n, k = 1)
@@ -2071,7 +2121,7 @@ function Q = orthog (n, k = 1)
   if (nargin < 1 || nargin > 2)
     error ("gallery: 1 to 2 arguments are required for orthog matrix.");
   elseif (! isnumeric (n) || all (numel (n) != [1 2]) || fix (n) != n)
-    error ("gallery: N must be an integer for orthog matrix.");
+    error ("gallery: N must be a 1 or 2 element integer for orthog matrix.");
   elseif (! isnumeric (k) || ! isscalar (k))
     error ("gallery: K must be a numeric scalar for orthog matrix.");
   endif
@@ -2138,7 +2188,7 @@ function A = parter (n)
   ##                Linear Algebra and Appl., 149 (1991), pp. 1-18.
 
   if (nargin != 1)
-    error ("gallery: 1 is required for parter matrix.");
+    error ("gallery: 1 argument is required for parter matrix.");
   elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
     error ("gallery: N must be an integer for parter matrix.");
   endif
@@ -2180,7 +2230,7 @@ function A = poisson (n)
   ##           (Section 4.5.4).
 
   if (nargin != 1)
-    error ("gallery: 1 is required for poisson matrix.");
+    error ("gallery: 1 argument is required for poisson matrix.");
   elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
     error ("gallery: N must be an integer for poisson matrix.");
   endif
@@ -2450,7 +2500,7 @@ function A = redheff (n)
   ##            Linear Algebra and Appl., 162 (1992), pp. 673-683.
 
   if (nargin != 1)
-    error ("gallery: 1 is required for redheff matrix.");
+    error ("gallery: 1 argument is required for redheff matrix.");
   elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
     error ("gallery: N must be an integer for redheff matrix.");
   endif
@@ -2480,7 +2530,7 @@ function A = riemann (n)
   ##            Linear Algebra and Appl., 81 (1986), pp. 153-198.
 
   if (nargin != 1)
-    error ("gallery: 1 is required for riemann matrix.");
+    error ("gallery: 1 argument is required for riemann matrix.");
   elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
     error ("gallery: N must be an integer for riemann matrix.");
   endif
@@ -2506,7 +2556,7 @@ function A = ris (n)
   ##           Bristol, 1990 (Appendix 1).
 
   if (nargin != 1)
-    error ("gallery: 1 arguments is required for ris matrix.");
+    error ("gallery: 1 argument is required for ris matrix.");
   elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
     error ("gallery: N must be an integer for ris matrix.");
   endif
@@ -2866,7 +2916,7 @@ function [A, b] = wilk (n)
   ##           Press, 1965.
 
   if (nargin != 1)
-    error ("gallery: only 1 arguments is required for wilk matrix.");
+    error ("gallery: 1 argument is required for wilk matrix.");
   elseif (! isnumeric (n) || ! isscalar (n))
     error ("gallery: N must be a numeric scalar for wilk matrix.");
   endif
