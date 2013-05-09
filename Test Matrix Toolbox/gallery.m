@@ -982,17 +982,21 @@ function C = cauchy (x, y)
   ##          pp. 279-313, 1962. (States the totally positive property on p. 295.)
 
   if (nargin < 1 || nargin > 2)
-    error ("gallery: 1 or 2 arguments are required for Cauchy matrix.");
+    error ("gallery: 1 or 2 arguments are required for cauchy matrix.");
   elseif (! isnumeric (x))
-    error ("gallery: X must be numeric for Cauchy matrix.");
+    error ("gallery: X must be numeric for cauchy matrix.");
   elseif (nargin == 2 && ! isnumeric (y))
-    error ("gallery: Y must be numeric for Cauchy matrix.");
+    error ("gallery: Y must be numeric for cauchy matrix.");
   endif
 
-  n = length (x);
-  if (n == 1)
+  n = numel (x);
+  if (isscalar (x) && fix (x) == x)
     n = x;
     x = 1:n;
+  elseif (n > 1 && isvector (x))
+    ## do nothing
+  else
+    error ("gallery: X be an integer or a vector for cauchy matrix.");
   endif
 
   if (nargin == 1)
@@ -1031,15 +1035,20 @@ function C = chebspec (n, k = 0)
   ##              derivative, SIAM J. Sci. Stat. Comput., 9 (1988), pp. 1050-1057.
 
   if (nargin < 1 || nargin > 2)
-    error ("gallery: 1 or 2 arguments are required for Chebyshev matrix.");
-  elseif (! isnumeric (n) || ! isscalar (n))
-    error ("gallery: N must be a numeric scalar.");
+    error ("gallery: 1 to 2 arguments are required for chebspec matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for chebspec matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a scalar for chebspec matrix.");
   endif
 
   ## k = 1 case obtained from k = 0 case with one bigger n.
-  if (k == 1)
-    n = n + 1;
-  endif
+  switch (k)
+    case (0), # do nothing
+    case (1), n = n + 1;
+    otherwise
+      error ("gallery: unknown K `%d' for chebspec matrix.", k);
+  endswitch
 
   n = n-1;
   C = zeros (n+1);
@@ -1088,24 +1097,32 @@ function C = chebvand (m, p)
   ##            pp. 23-41.
 
   if (nargin < 1 || nargin > 2)
-    error ("gallery: 1 or 2 arguments are required for Chebvand matrix.");
+    error ("gallery: 1 or 2 arguments are required for chebvand matrix.");
   endif
+
+  ## because the order of the arguments changes if nargin is 1 or 2 ...
 
   if (nargin == 1)
     p = m;
   endif
-  n = length (p);
 
-  if (n == 1)
+  n = numel (p);
+  if (! isnumeric (p))
+    error ("gallery: P must be numeric for chebvand matrix.");
+  elseif (isscalar (p) && fix (p) == p)
     n = p;
     p = linspace (0, 1, n);
+  elseif (n > 1 && isvector (p))
+    ## do nothing
   endif
+  p = p(:).'; # Ensure p is a row vector.
 
   if (nargin == 1)
     m = n;
+  elseif (! isnumeric (m) || ! isscalar (m))
+    error ("gallery: M must be a scalar for chebvand matrix.");
   endif
 
-  p = p(:).'; # Ensure p is a row vector.
   C = ones (m, n);
   if (m != 1)
     C(2,:) = p;
@@ -1131,13 +1148,13 @@ function A = chow (n, alpha = 1, delta = 0)
   ##            Hessenberg matrices, SIAM Review, 13 (1971), pp. 220-221.
 
   if (nargin < 1 || nargin > 3)
-    error ("gallery: 1 to 3 arguments are required for Chow matrix.");
-  elseif (! isnumeric (n) || ! isscalar (n))
-    error ("gallery: N must be a numeric scalar");
+    error ("gallery: 1 to 3 arguments are required for chow matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for chow matrix.");
   elseif (! isnumeric (alpha) || ! isscalar (alpha))
-    error ("gallery: ALPHA must be a numeric scalar");
+    error ("gallery: ALPHA must be a scalar for chow matrix.");
   elseif (! isnumeric (delta) || ! isscalar (delta))
-    error ("gallery: DELTA must be a numeric scalar");
+    error ("gallery: DELTA must be a scalar for chow matrix.");
   endif
 
   A = toeplitz (alpha.^(1:n), [alpha 1 zeros(1, n-2)]) + delta * eye (n);
@@ -1159,13 +1176,19 @@ function C = circul (v)
   ##         P.J. Davis, Circulant Matrices, John Wiley, 1977.
 
   if (nargin != 1)
-    error ("gallery: only 1 argument required for circul matrix.");
+    error ("gallery: 1 argument is required for circul matrix.");
+  elseif (! isnumeric (v))
+    error ("gallery: V must be numeric for circul matrix.");
   endif
 
-  n = length (v);
-  if n == 1
+  n = numel (x);
+  if (isscalar (x) && fix (x) == x)
     n = v;
     v = 1:n;
+  elseif (n > 1 && isvector (x))
+    ## do nothing
+  else
+    error ("gallery: X must be a scalar or a vector for circul matrix.");
   endif
 
   v = v(:).';   # Make sure v is a row vector
@@ -1199,6 +1222,10 @@ function A = clement (n, k = 0)
 
   if (nargin < 1 || nargin > 2)
     error ("gallery: 1 or 2 arguments are required for clement matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for clement matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a numeric scalar for clement matrix.");
   endif
 
   n = n-1;
@@ -1207,9 +1234,11 @@ function A = clement (n, k = 0)
 
   if (k == 0)
     A = diag (x, -1) + diag (z, 1);
-  else
+  elseif (k == 1)
     y = sqrt (x.*z);
     A = diag (y, -1) + diag (y, 1);
+  else
+    error ("gallery: K must have a value of 0 or 1 for clement matrix.");
   endif
 endfunction
 
@@ -1229,6 +1258,10 @@ function C = compar (A, k = 0)
 
   if (nargin < 1 || nargin > 2)
     error ("gallery: 1 or 2 arguments are required for compar matrix.");
+  elseif (! isnumeric (A) || ndims (A) != 2)
+    error ("gallery: A must be a 2D matrix for compar matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a numeric scalar for compar matrix.");
   endif
 
   [m, n] = size (A);
@@ -1252,11 +1285,11 @@ function C = compar (A, k = 0)
     for j = 1:p
       C(j,j) = abs (A(j,j));
     endfor
-    if (all (A == tril (A))), C = tril(C); endif
-    if (all (A == triu (A))), C = triu(C); endif
+    if (all (A == tril (A))), C = tril (C); endif
+    if (all (A == triu (A))), C = triu (C); endif
 
   else
-    error ("gallery: K must be 0 or 1 for compar matrix.");
+    error ("gallery: K must have a value of 0 or 1 for compar matrix.");
   endif
 
 endfunction
@@ -1286,10 +1319,12 @@ function A = condex (n, k = 4, theta = 100)
 
   if (nargin < 1 || nargin > 3)
     error ("gallery: 1 to 3 arguments are required for condex matrix.");
-  elseif (! isnumeric (n))
-    error ("gallery: N must be numeric for condex matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for condex matrix.");
   elseif (! isnumeric (k) || ! isscalar (k))
     error ("gallery: K must be a numeric scalar for condex matrix.");
+  elseif (! isnumeric (theta) || ! isscalar (theta))
+    error ("gallery: THETA must be a numeric scalar for condex matrix.");
   endif
 
   if (k == 1)       # Cline and Rew (1983), Example B.
@@ -1319,12 +1354,12 @@ function A = condex (n, k = 4, theta = 100)
     A = eye (n) + theta*P;
 
   else
-    error ("gallery: unknown estimator K for condex matrix.");
+    error ("gallery: unknown estimator K `%d' for condex matrix.", k);
   endif
 
   ## Pad out with identity as necessary.
-  [m, m] = size (A);
-  if m < n
+  m = columns (A);
+  if (m < n)
     for i = n:-1:m+1
       A(i,i) = 1;
     endfor
@@ -1344,12 +1379,15 @@ function A = cycol (n, k)
 
   if (nargin < 1 || nargin > 2)
     error ("gallery: 1 or 2 arguments are required for cycol matrix.");
-  elseif (! isscalar (k))
+  elseif (! isnumeric (n) || all (numel (n) != [1 2]) || fix (n) != n)
+    error ("gallery: N must be a 1 or 2 element integer for cycol matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
     error ("gallery: K must be a scalar for cycol matrix.");
   endif
 
-  m = n(1);              # Parameter n specifies dimension: m-by-n.
-  n = n(length (n));
+  ## Parameter n specifies dimension: m-by-n
+  m = n(1);
+  n = n(end);
 
   if (nargin < 2)
     k = max (round (n/4), 1);
@@ -1357,9 +1395,9 @@ function A = cycol (n, k)
 
   A = randn (m, k);
   for i = 2:ceil (n/k)
-    A = [A A(:, 1:k)];
+    A = [A A(:,1:k)];
   endfor
-  A = A(:, 1:n);
+  A = A(:,1:n);
 endfunction
 
 function [c, d, e] = dorr (n, theta = 0.01)
@@ -1380,13 +1418,13 @@ function [c, d, e] = dorr (n, theta = 0.01)
 
   if (nargin < 1 || nargin > 2)
     error ("gallery: 1 or 2 arguments are required for dorr matrix.");
-  elseif (! isscalar (n) || ! isnumeric (n))
-    error ("gallery: N must be a numeric scalar for dorr matrix.");
+  elseif (! isscalar (n) || ! isnumeric (n) || fix (n) != n)
+    error ("gallery: N must be an integer for dorr matrix.");
   elseif (! isscalar (theta) || ! isnumeric (theta))
     error ("gallery: THETA must be a numeric scalar for dorr matrix.");
   endif
 
-  c = zeros (n,1);
+  c = zeros (n, 1);
   e = c;
   d = c;
   ##  All length n for convenience.  Make c, e of length n-1 later.
@@ -1396,12 +1434,12 @@ function [c, d, e] = dorr (n, theta = 0.01)
   term = theta/h^2;
 
   i = (1:m)';
-  c(i) = -term * ones (m,1);
+  c(i) = -term * ones (m, 1);
   e(i) = c(i) - (0.5-i*h)/h;
   d(i) = -(c(i) + e(i));
 
   i = (m+1:n)';
-  e(i) = -term * ones (n-m,1);
+  e(i) = -term * ones (n-m, 1);
   c(i) = e(i) + (0.5-i*h)/h;
   d(i) = -(c(i) + e(i));
 
@@ -1437,37 +1475,47 @@ function A = dramadah (n, k = 1)
   ##           L. Ching, The maximum determinant of an nxn lower Hessenberg
   ##              (0,1) matrix, Linear Algebra and Appl., 183 (1993), pp. 147-153.
 
-  if (k == 1)  # Toeplitz
-    c = ones(n,1);
-    for i=2:4:n
-      m = min(1,n-i);
-      c(i:i+m) = zeros(m+1,1);
-    endfor
-    r = zeros(n,1);
-    r(1:4) = [1 1 0 1];
-    if (n < 4)
-      r = r(1:n);
-    endif
-    A = toeplitz(c,r);
-
-  elseif (k == 2)  # Upper triangular and Toeplitz
-    c = zeros(n,1);
-    c(1) = 1;
-    r = ones(n,1);
-    for i=3:2:n
-      r(i) = 0;
-    endfor
-    A = toeplitz(c,r);
-
-  elseif k == 3  # Lower Hessenberg.
-    c = ones(n,1);
-    for i=2:2:n
-      c(i)=0;
-    endfor
-    A = toeplitz(c, [1 1 zeros(1,n-2)]);
-  else
-    error ("gallery: invalid K for dramadah matrix.")
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for dramadah matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for dramadah matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a numeric scalar for dramadah matrix.");
   endif
+
+  switch (k)
+    case (1)  # Toeplitz
+      c = ones (n, 1);
+      for i = 2:4:n
+        m = min (1, n-i);
+        c(i:i+m) = zeros (m+1, 1);
+      endfor
+      r = zeros (n, 1);
+      r(1:4) = [1 1 0 1];
+      if (n < 4)
+        r = r(1:n);
+      endif
+      A = toeplitz (c, r);
+
+    case (2)  # Upper triangular and Toeplitz
+      c = zeros (n, 1);
+      c(1) = 1;
+      r = ones (n, 1);
+      for i= 3:2:n
+        r(i) = 0;
+      endfor
+      A = toeplitz (c, r);
+
+    case (3)  # Lower Hessenberg
+      c = ones (n, 1);
+      for i= 2:2:n
+        c(i) = 0;
+      endfor
+      A = toeplitz (c, [1 1 zeros(1,n-2)]);
+
+    otherwise
+      error ("gallery: unknown K `%d' for dramadah matrix.", k);
+  endswitch
 endfunction
 
 function A = fiedler (c)
@@ -1491,18 +1539,25 @@ function A = fiedler (c)
   ##            J. Todd, Basic Numerical Mathematics, Vol. 2: Numerical Algebra,
   ##               Birkhauser, Basel, and Academic Press, New York, 1977, p. 159.
 
-  n = max(size(c));
-
-  ##   Handle scalar c.
-  if n == 1
-    n = c;
-    c = 1:n;
+  if (nargin != 1)
+    error ("gallery: 1 argument is required for fiedler matrix.");
+  elseif (! isnumeric (c))
+    error ("gallery: C must be numeric for fiedler matrix.");
   endif
 
-  c = c(:).';                    % Ensure c is a row vector.
+  n = numel (c);
+  if (isscalar (c) && fix (c) == c)
+    n = c;
+    c = 1:n;
+  elseif (n > 1 && isvector (c))
+    ## do nothing
+  else
+    error ("gallery: C must be an integer or a vector for fiedler matrix.");
+  endif
+  c = c(:).';           # Ensure c is a row vector.
 
-  A = ones(n,1)*c;
-  A = abs(A - A.');              % NB. array transpose.
+  A = ones (n, 1) * c;
+  A = abs (A - A.');    # NB. array transpose.
 endfunction
 
 function A = forsythe (n, alpha = sqrt (eps), lambda = 0)
@@ -1512,6 +1567,16 @@ function A = forsythe (n, alpha = sqrt (eps), lambda = 0)
   ##           It has the characteristic polynomial
   ##                   DET(A-t*EYE) = (LAMBDA-t)^N - (-1)^N ALPHA.
   ##           ALPHA defaults to SQRT(EPS) and LAMBDA to 0.
+
+  if (nargin < 1 || nargin > 3)
+    error ("gallery: 1 to 3 arguments are required for forsythe matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for forsythe matrix.");
+  elseif (! isnumeric (alpha) || ! isscalar (alpha))
+    error ("gallery: ALPHA must be a numeric scalar for forsythe matrix.");
+  elseif (! isnumeric (lambda) || ! isscalar (lambda))
+    error ("gallery: LAMBDA must be a numeric scalar for forsythe matrix.");
+  endif
 
   A = jordbloc (n, lambda);
   A(n,1) = alpha;
@@ -1555,18 +1620,30 @@ function F = frank (n, k = 0)
   ##         J.M. Varah, A generalization of the Frank matrix, SIAM J. Sci. Stat.
   ##            Comput., 7 (1986), pp. 835-839.
 
-  p = n:-1:1;
-  F = triu( p( ones(n,1), :) - diag( ones(n-1,1), -1), -1 );
-  if (k != 0)
-    F = F(p,p)';
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for frank matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for frank matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a numeric scalar for frank matrix.");
   endif
+
+  p = n:-1:1;
+  F = triu (p(ones (n, 1), :) - diag (ones (n-1, 1), -1), -1);
+
+  switch (k)
+    case (0), # do nothing
+    case (1), F = F(p,p)';
+    otherwise
+      error ("gallery: K must have a value of 0 or 1 for frank matrix.");
+  endswitch
 endfunction
 
 function c = gcdmat (n)
   if (nargin != 1)
-    error ("gallery: unspecified N for gcdmat matrix.");
-  elseif (! isscalar (n) || ! isnumeric (n))
-    error ("gallery: N must be a numeric scalar for gcdmat matrix.");
+    error ("gallery: 1 argument is required for gcdmat matrix.");
+  elseif (! isscalar (n) || ! isnumeric (n) || fix (n) != n)
+    error ("gallery: N must be an integer for gcdmat matrix.");
   endif
   c = gcd (repmat ((1:n)', [1 n]), repmat (1:n, [n 1]));
 endfunction
@@ -1589,13 +1666,19 @@ function A = gearmat (n, i = n, j = -n)
   ##         C.W. Gear, A simple set of test matrices for eigenvalue programs,
   ##         Math. Comp., 23 (1969), pp. 119-125.
 
-  if ~(i~=0 & abs(i)<=n & j~=0 & abs(j)<=n)
-    error('Invalid I and J parameters')
+  if (nargin < 1 || nargin > 3)
+    error ("gallery: 1 to 3 arguments are required for gearmat matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for gearmat matrix.");
+  elseif (! isnumeric (i) || ! isscalar (i) || i == 0 || abs (i) <= n)
+    error ("gallery: I must be a non-zero scalar, and abs (I) <= N for gearmat matrix.");
+  elseif (! isnumeric (j) || ! isscalar (j) || i == 0 || abs (j) <= n)
+    error ("gallery: J must be a non-zero scalar, and abs (J) <= N for gearmat matrix.");
   endif
 
-  A = diag(ones(n-1,1),-1) + diag(ones(n-1,1),1);
-  A(1, abs(i)) = sign(i);
-  A(n, n+1-abs(j)) = sign(j);
+  A = diag (ones (n-1, 1), -1) + diag (ones (n-1, 1), 1);
+  A(1, abs (i)) = sign (i);
+  A(n, n+1 - abs (j)) = sign (j);
 endfunction
 
 function G = grcar (n, k = 3)
@@ -1613,7 +1696,15 @@ function G = grcar (n, k = 3)
   ##                algorithm for nonsymmetric linear systems, SIAM J. Matrix Anal.
   ##                Appl., 13 (1992), pp. 796-825.
 
-  G = tril(triu(ones(n)), k) - diag(ones(n-1,1), -1);
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for grcar matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for grcar matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a numeric scalar for grcar matrix.");
+  endif
+
+  G = tril (triu (ones (n)), k) - diag (ones (n-1, 1), -1);
 endfunction
 
 function A = hanowa (n, d = -1)
@@ -1629,13 +1720,19 @@ function A = hanowa (n, d = -1)
   ##         Differential Equations I: Nonstiff Problems, Springer-Verlag,
   ##         Berlin, 1987. (pp. 86-87)
 
-  m = n/2;
-  if round(m) ~= m
-    error('N must be even.')
-  end
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for hanowa matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for hanowa matrix.");
+  elseif (rem (n, 2) != 0)
+    error ("gallery: N must be even for hanowa matrix.");
+  elseif (! isnumeric (lambda) || ! isscalar (lambda))
+    error ("gallery: D must be a numeric scalar for hanowa matrix.");
+  endif
 
-  A = [ d*eye(m) -diag(1:m)
-        diag(1:m)  d*eye(m)];
+  m = n/2;
+  A = [ d*eye(m)  -diag(1:m)
+        diag(1:m)  d*eye(m) ];
 endfunction
 
 function [v, beta] = house (x)
@@ -1663,20 +1760,24 @@ function [v, beta] = house (x)
   ##         J.H. Wilkinson, The Algebraic Eigenvalue Problem, Oxford University
   ##            Press, 1965.
 
-  [m, n] = size(x);
-  if (n > 1)
-    error('Argument must be a column vector.')
+  if (nargin != 1)
+    error ("gallery: 1 argument is required for house matrix.");
+  elseif (! isnumeric (x) || ! isvector (x) || numel (x) <= 1)
+    error ("gallery: X must be a vector for house matrix.");
   endif
 
-  s = norm(x) * (sign(x(1)) + (x(1)==0));    % Modification for sign(0)=1.
+  ## must be a column vector
+  x = x(:);
+
+  s = norm (x) * (sign (x(1)) + (x(1) == 0)); # Modification for sign (0) == 1.
   v = x;
   if (s == 0)
     ## Quit if x is the zero vector.
     beta = 1;
   else
     v(1) = v(1) + s;
-    beta = 1/(s'*v(1));                        % NB the conjugated s.
-    ##  beta = 1/(abs(s)*(abs(s)+abs(x(1)) would guarantee beta real.
+    beta = 1/(s'*v(1));                       # NB the conjugated s.
+    ##  beta = 1/(abs (s) * (abs (s) +abs(x(1)) would guarantee beta real.
     ##  But beta as above can be non-real (due to rounding) only when x is complex.
   endif
 endfunction
@@ -1704,20 +1805,33 @@ function A = invhess (x, y)
   ##          P. Rozsa, On the inverse of band matrices, Integral Equations and
   ##              Operator Theory, 10 (1987), pp. 82-95.
 
-  n = max(size(x));
-  ##   Handle scalar x.
-  if n == 1
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for invhess matrix.");
+  elseif (! isnumeric (x))
+    error ("gallery: X must be numeric for invhess matrix.");
+  endif
+
+  if (isscalar (x) && fix (x) == x)
     n = x;
     x = 1:n;
+  elseif (! isscalar (x) && isvector (x))
+    n = numel (n);
+  else
+    error ("gallery: X must be an integer scalar, or a vector for invhess matrix.");
   endif
-  x = x(:);
 
-  if nargin < 2, y = -x; end
+  if (nargin < 2)
+    y = -x(1:end-1);
+  elseif (! isvector (y) || numel (y) != numel (x) -1)
+    error ("gallery: Y must be a vector of length -1 than X for invhess matrix.");
+  endif
+
+  x = x(:);
   y = y(:);
 
   ##  On next line, z = x'; A = z(ones(n,1),:) would be more efficient.
-  A = ones(n,1)*x';  
-  for j=2:n
+  A = ones (n, 1) * x';
+  for j = 2:n
     A(1:j-1,j) = y(1:j-1);
   endfor
 endfunction
@@ -1734,14 +1848,20 @@ function A = invol (n)
   ##         of involutory and of idempotent matrices, Numer. Math. 5 (1963),
   ##         pp. 234-237.
 
-  A = hilb(n);
+  if (nargin != 1)
+    error ("gallery: 1 argument is required for invol matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for invol matrix.");
+  endif
+
+  A = hilb (n);
 
   d = -n;
-  A(:, 1) = d*A(:, 1);
+  A(:, 1) = d * A(:, 1);
 
   for i = 1:n-1
     d = -(n+i)*(n-i)*d/(i*i);
-    A(i+1, :) = d*A(i+1, :);
+    A(i+1,:) = d * A(i+1,:);
   endfor
 endfunction
 
@@ -1761,28 +1881,47 @@ function [A, detA] = ipjfact (n, k = 0)
   ##           M.J.C. Gover, The explicit inverse of factorial Hankel matrices,
   ##           Dept. of Mathematics, University of Bradford, 1993.
 
-  c = cumprod(2:n+1);
-  d = cumprod(n+1:2*n) * c(n-1);
-
-  A = hankel(c, d);
-
-  if k == 1
-    A = ones(n)./A;
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for ipjfact matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for ipjfact matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a numeric scalar for ipjfact matrix.");
   endif
 
-  if nargout == 2
+  c = cumprod (2:n+1);
+  d = cumprod (n+1:2*n) * c(n-1);
+
+  A = hankel (c, d);
+
+  switch (k)
+    case (0), # do nothing
+    case (1), A = ones (n) ./ A;
+    otherwise
+      error ("gallery: K must have a value of 0 or 1 for ipjfact matrix.");
+  endswitch
+
+  if (nargout == 2)
     d = 1;
-    if k == 0
-      for i=1:n-1
-        d = d*prod(1:i+1)*prod(1:n-i);
+
+    if (k == 0)
+      for i = 1:n-1
+        d = d * prod (1:i+1) * prod (1:n-i);
       endfor
-      d = d*prod(1:n+1);
+      d = d * prod (1:n+1);
+
+    elseif (k == 1)
+      for i = 0:n-1
+        d = d * prod (1:i) / prod (1:n+1+i);
+      endfor
+      if (rem (n*(n-1)/2, 2))
+        d = -d;
+      endif
+
     else
-      for i=0:n-1
-        d = d*prod(1:i)/prod(1:n+1+i);
-      endfor
-      if rem(n*(n-1)/2,2), d = -d; endif
+      error ("gallery: K must have a value of 0 or 1 for ipjfact matrix.");
     endif
+
     detA = d;
   endif
 endfunction
@@ -1792,7 +1931,15 @@ function J = jordbloc (n, lambda = 1)
   ##           JORDBLOC(N, LAMBDA) is the N-by-N Jordan block with eigenvalue
   ##           LAMBDA.  LAMBDA = 1 is the default.
 
-  J = lambda*eye(n) + diag(ones(n-1,1),1);
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for jordbloc matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for jordbloc matrix.");
+  elseif (! isnumeric (lambda) || ! isscalar (lambda))
+    error ("gallery: LAMBDA must be a numeric scalar for jordbloc matrix.");
+  endif
+
+  J = lambda * eye (n) + diag (ones (n-1, 1), 1);
 endfunction
 
 function U = kahan (n, theta = 1.2, pert = 25)
@@ -1822,18 +1969,29 @@ function U = kahan (n, theta = 1.2, pert = 25)
   ##        N.J. Higham, A survey of condition number estimation for
   ##           triangular matrices, SIAM Review, 29 (1987), pp. 575-596.
 
-  r = n(1);              % Parameter n specifies dimension: r-by-n.
-  n = n(max(size(n)));
+  if (nargin < 1 || nargin > 3)
+    error ("gallery: 1 to 3 arguments are required for kahan matrix.");
+  elseif (! isnumeric (n) || all (numel (n) != [1 2]) || fix (n) != n)
+    error ("gallery: N must be a 1 or 2 element integer for kahan matrix.");
+  elseif (! isnumeric (theta) || ! isscalar (theta))
+    error ("gallery: THETA must be a numeric scalar for kahan matrix.");
+  elseif (! isnumeric (pert) || ! isscalar (pert))
+    error ("gallery: PERT must be a numeric scalar for kahan matrix.");
+  endif
 
-  s = sin(theta);
-  c = cos(theta);
+  ## Parameter n specifies dimension: r-by-n
+  r = n(1);
+  n = n(end);
 
-  U = eye(n) - c*triu(ones(n), 1);
-  U = diag(s.^[0:n-1])*U + pert*eps*diag( [n:-1:1] );
-  if r > n
-    U(r,n) = 0;         % Extend to an r-by-n matrix.
+  s = sin (theta);
+  c = cos (theta);
+
+  U = eye (n) - c * triu (ones (n), 1);
+  U = diag (s.^[0:n-1]) * U + pert*eps* diag ([n:-1:1]);
+  if (r > n)
+    U(r,n) = 0;     # Extend to an r-by-n matrix
   else
-    U = U(1:r,:);       % Reduce to an r-by-n matrix.
+    U = U(1:r,:);   # Reduce to an r-by-n matrix
   endif
 endfunction
 
@@ -1856,6 +2014,14 @@ function A = kms (n, rho = 0.5)
   ##        for Hermitian Toeplitz matrices, SIAM J. Matrix Analysis and Appl.,
   ##        10 (1989), pp. 135-146 (and see the references therein).
 
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for lauchli matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error("gallery: N must be an integer for lauchli matrix.")
+  elseif (! isscalar (mu))
+    error("gallery: MU must be a scalar for lauchli matrix.")
+  endif
+
   A = (1:n)'*ones(1,n);
   A = abs(A - A');
   A = rho .^ A;
@@ -1876,20 +2042,33 @@ function B = krylov (A, x, j)
   ##           G.H. Golub and C.F. Van Loan, Matrix Computations, second edition,
   ##           Johns Hopkins University Press, Baltimore, Maryland, 1989, p. 369.
 
-  [n, n] = size(A);
-
-  if n == 1   % Handle special case A = scalar.
-    n = A;
-    A = randn(n);
+  if (nargin < 1 || nargin > 3)
+    error ("gallery: 1 to 3 arguments are required for krylov matrix.");
+  elseif (! isnumeric (A) || ! issquare (A) || ndims (A) != 2)
+    error ("gallery: A must be a square 2D matrix for krylov matrix.");
   endif
 
-  if nargin < 3, j = n; end
-  if nargin < 2, x = ones(n,1); end
+  n = length (A);
+  if (isscalar (A))
+    n = A;
+    A = randn (n);
+  endif
 
+  if (nargin < 2)
+    x = ones (n, 1);
+  elseif (! isvector (x) || numel (x) != n)
+    error ("gallery: X must be a vector of length equal to A for krylov matrix.");
+  endif
 
-  B = ones(n,j);
+  if (nargin < 3)
+    j = n;
+  elseif (! isnumeric (j) || ! isscalar (j) || fix (j) != j)
+    error ("gallery: J must be an integer for krylov matrix.");
+  endif
+
+  B = ones (n, j);
   B(:,1) = x(:);
-  for i=2:j
+  for i = 2:j
     B(:,i) = A*B(:,i-1);
   endfor
 endfunction
@@ -1908,9 +2087,9 @@ function A = lauchli (n, mu = sqrt (eps))
   if (nargin < 1 || nargin > 2)
     error ("gallery: 1 to 2 arguments are required for lauchli matrix.");
   elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
-    error("gallery: N must be an integer for lauchli matrix.")
+    error ("gallery: N must be an integer for lauchli matrix.");
   elseif (! isscalar (mu))
-    error("gallery: MU must be a scalar for lauchli matrix.")
+    error ("gallery: MU must be a scalar for lauchli matrix.");
   endif
 
   A = [ones(1, n)
@@ -2038,9 +2217,9 @@ function A = moler (n, alpha = -1)
   if (nargin < 1 || nargin > 2)
     error ("gallery: 1 to 2 arguments are required for moler matrix.");
   elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
-    error("gallery: N must be an integer for moler matrix.")
+    error ("gallery: N must be an integer for moler matrix.");
   elseif (! isscalar (alpha))
-    error("gallery: ALPHA must be a scalar for moler matrix.")
+    error ("gallery: ALPHA must be a scalar for moler matrix.");
   endif
 
   A = triw (n, alpha)' * triw (n, alpha);
@@ -2058,7 +2237,6 @@ function [A, T] = neumann (n)
   ##          Reference:
   ##          R.J. Plemmons, Regular splittings and the discrete Neumann
   ##          problem, Numer. Math., 25 (1976), pp. 153-161.
-
 
   if (nargin != 1)
     error ("gallery: 1 argument is required for neumann matrix.");
@@ -2118,8 +2296,8 @@ function Q = orthog (n, k = 1)
 
   if (nargin < 1 || nargin > 2)
     error ("gallery: 1 to 2 arguments are required for orthog matrix.");
-  elseif (! isnumeric (n) || all (numel (n) != [1 2]) || fix (n) != n)
-    error ("gallery: N must be a 1 or 2 element integer for orthog matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for orthog matrix.");
   elseif (! isnumeric (k) || ! isscalar (k))
     error ("gallery: K must be a numeric scalar for orthog matrix.");
   endif
@@ -2164,7 +2342,7 @@ function Q = orthog (n, k = 1)
       Q = cos (m);
 
     otherwise
-      error("gallery: unknown K `%d' for orthog matrix.", k);
+      error ("gallery: unknown K `%d' for orthog matrix.", k);
   endswitch
 endfunction
 
@@ -2749,11 +2927,11 @@ function t = triw (n, alpha = -1, k = -1)
   if (nargin < 1 || nargin > 3)
     error ("gallery: 1 to 3 arguments are required for triw matrix.");
   elseif (! isnumeric (n) || all (numel (n) != [1 2]))
-    error("gallery: N must be a 1 or 2 elements vector for triw matrix.")
+    error ("gallery: N must be a 1 or 2 elements vector for triw matrix.");
   elseif (! isscalar (alpha))
-    error("gallery: ALPHA must be a scalar for triw matrix.")
+    error ("gallery: ALPHA must be a scalar for triw matrix.");
   elseif (! isscalar (k) || ! isnumeric (k) || fix (k) != k)
-    error("gallery: K must be a numeric integer for triw matrix.")
+    error ("gallery: K must be a numeric integer for triw matrix.");
   endif
 
   m = n(1);              # Parameter n specifies dimension: m-by-n.
@@ -2953,7 +3131,7 @@ function [A, b] = wilk (n)
     A = diag (abs (-m:m)) + E + E';
 
   else
-    error("gallery: unknown N %d for wilk matrix.", n);
+    error ("gallery: unknown N `%d' for wilk matrix.", n);
   endif
 endfunction
 
