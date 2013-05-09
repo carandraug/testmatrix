@@ -2079,9 +2079,7 @@ function [A, T] = neumann (n)
   T(1,2) = -2;
   T(n(1),n(1)-1) = -2;
 
-  ## FIXME: the call to sparse() is due to https://savannah.gnu.org/bugs/?38954
-  ##        and should be removed once that is fixed
-  A = kron (T, eye (n(2))) + sparse (kron (eye (n(2)), T));
+  A = kron (T, eye (n(2))) + kron (eye (n(2)), T);
 endfunction
 
 function Q = orthog (n, k = 1)
