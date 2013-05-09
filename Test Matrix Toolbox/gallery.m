@@ -2068,44 +2068,56 @@ function Q = orthog (n, k = 1)
   ##             Hartley transform, SIAM J. Matrix Anal. Appl., 14 (1993),
   ##             pp. 500-507.
 
-  if k == 1
-                                         % E'vectors second difference matrix
-    m = (1:n)'*(1:n) * (pi/(n+1));
-    Q = sin(m) * sqrt(2/(n+1));
-
-  elseif k == 2
-    m = (1:n)'*(1:n) * (2*pi/(2*n+1));
-    Q = sin(m) * (2/sqrt(2*n+1));
-
-  elseif k == 3                          %  Vandermonde based on roots of unity
-    m = 0:n-1;
-    Q = exp(m'*m*2*pi*sqrt(-1)/n) / sqrt(n);
-
-  elseif k == 4                          %  Helmert matrix
-    Q = tril(ones(n));
-    Q(1,2:n) = ones(1,n-1);
-    for i=2:n
-      Q(i,i) = -(i-1);
-    end
-    Q = diag( sqrt( [n 1:n-1] .* [1:n] ) ) \ Q;
-
-  elseif k == 5                          %  Hartley matrix
-    m = (0:n-1)'*(0:n-1) * (2*pi/n);
-    Q = (cos(m) + sin(m))/sqrt(n);
-
-  elseif k == -1
-                                         %  extrema of T(n-1)
-    m = (0:n-1)'*(0:n-1) * (pi/(n-1));
-    Q = cos(m);
-
-  elseif k == -2
-                                         % zeros of T(n)
-    m = (0:n-1)'*(.5:n-.5) * (pi/n);
-    Q = cos(m);
-
-  else
-     error("gallery: invalid K for orthog matrix.");
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for orthog matrix.");
+  elseif (! isnumeric (n) || all (numel (n) != [1 2]) || fix (n) != n)
+    error ("gallery: N must be an integer for orthog matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a numeric scalar for orthog matrix.");
   endif
+
+  switch (k)
+    case (1)
+      ## E'vectors second difference matrix
+      m = (1:n)'*(1:n) * (pi/(n+1));
+      Q = sin (m) * sqrt (2/(n+1));
+
+    case (2)
+      m = (1:n)'*(1:n) * (2*pi/(2*n+1));
+      Q = sin (m) * (2/ sqrt (2*n+1));
+
+    case (3)
+      ## Vandermonde based on roots of unity
+      m = 0:n-1;
+      Q = exp (m'*m*2*pi* sqrt (-1) / n) / sqrt (n);
+
+    case (4)
+      ## Helmert matrix
+      Q = tril (ones (n));
+      Q(1,2:n) = ones (1, n-1);
+      for i = 2:n
+        Q(i,i) = -(i-1);
+      end
+      Q = diag (sqrt ([n 1:n-1] .* [1:n])) \ Q;
+
+    case (5)
+      ## Hartley matrix
+      m = (0:n-1)'*(0:n-1) * (2*pi/n);
+      Q = (cos (m) + sin (m)) / sqrt (n);
+
+    case (-1)
+      ##  extrema of T(n-1)
+      m = (0:n-1)'*(0:n-1) * (pi/(n-1));
+      Q = cos (m);
+
+    case (-2)
+      ## zeros of T(n)
+      m = (0:n-1)'*(.5:n-.5) * (pi/n);
+      Q = cos (m);
+
+    otherwise
+      error("gallery: unknown K `%d' for orthog matrix.", k);
+  endswitch
 endfunction
 
 function A = parter (n)
@@ -2125,7 +2137,13 @@ function A = parter (n)
   ##           E.E. Tyrtyshnikov, Cauchy-Toeplitz matrices and some applications,
   ##                Linear Algebra and Appl., 149 (1991), pp. 1-18.
 
-  A = cauchy( (1:n)+0.5, -(1:n) );
+  if (nargin != 1)
+    error ("gallery: 1 is required for parter matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for parter matrix.");
+  endif
+
+  A = cauchy ((1:n) + 0.5, -(1:n));
 endfunction
 
 function P = pei (n, alpha = 1)
@@ -2139,7 +2157,15 @@ function P = pei (n, alpha = 1)
   ##        M.L. Pei, A test matrix for inversion procedures,
   ##        Comm. ACM, 5 (1962), p. 508.
 
-  P = alpha*eye(n) + ones(n);
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for pei matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for pei matrix.");
+  elseif (! isnumeric (w) || ! isscalar (w))
+    error ("gallery: ALPHA must be a scalar for pei matrix.");
+  endif
+
+  P = alpha * eye (n) + ones (n);
 endfunction
 
 function A = poisson (n)
@@ -2153,9 +2179,15 @@ function A = poisson (n)
   ##           Johns Hopkins University Press, Baltimore, Maryland, 1989
   ##           (Section 4.5.4).
 
-  S = tridiag(n,-1,2,-1);
-  I = speye(n);
-  A = kron(I,S) + kron(S,I);
+  if (nargin != 1)
+    error ("gallery: 1 is required for poisson matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for poisson matrix.");
+  endif
+
+  S = tridiag (n, -1, 2, -1);
+  I = speye (n);
+  A = kron (I, S) + kron (S, I);
 endfunction
 
 function A = prolate (n, w = 0.25)
@@ -2172,9 +2204,17 @@ function A = prolate (n, w = 0.25)
   ##           J.M. Varah. The Prolate matrix. Linear Algebra and Appl.,
   ##           187:269--278, 1993.
 
-  a = zeros(n,1);
-  a(1) = 2*w;
-  a(2:n) = sin( 2*pi*w*(1:n-1) ) ./ ( pi*(1:n-1) );
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for prolate matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for prolate matrix.");
+  elseif (! isnumeric (w) || ! isscalar (w))
+    error ("gallery: W must be a scalar for prolate matrix.");
+  endif
+
+  a      = zeros (n, 1);
+  a(1)   = 2*w;
+  a(2:n) = sin (2*pi*w*(1:n-1)) ./ (pi*(1:n-1));
 
   A = toeplitz(a);
 endfunction
@@ -2200,30 +2240,32 @@ function H = randhess (x)
   ##        W.B. Gragg, The QR algorithm for unitary Hessenberg matrices,
   ##        J. Comp. Appl. Math., 16 (1986), pp. 1-8.
 
-  if any(imag(x))
-    error('Parameter must be real.')
+  if (nargin != 1)
+    error ("gallery: 1 argument is required for randhess matrix.");
+  elseif (! isnumeric (x) || ! isreal (x))
+    error ("gallery: N or X must be numeric real values for randhess matrix.");
   endif
 
-  n = max(size(x));
-
-  if n == 1
-    ##   Handle scalar x.
+  if (isscalar (x))
     n = x;
-    x = rand(n-1,1)*2*pi;
-    H = eye(n);
-    H(n,n) = sign(randn);
+    x = rand (n-1, 1) * 2*pi;
+    H = eye (n);
+    H(n,n) = sign (randn);
+  elseif (isvector (x))
+    n = numel (x);
+    H = eye (n);
+    H(n,n) = sign (x(n)) + (x(n) == 0); # Second term ensures H(n,n) nonzero.
   else
-    H = eye(n);
-    H(n,n) = sign(x(n)) + (x(n)==0);   % Second term ensures H(n,n) nonzero.
+    error ("gallery: N or X must be a scalar or a vector for randhess matrix.");
   endif
 
-  for i=n:-1:2
-    % Apply Givens rotation through angle x(i-1).
+  for i = n:-1:2
+    ## Apply Givens rotation through angle x(i-1).
     theta = x(i-1);
-    c = cos(theta);
-    s = sin(theta);
-    H( [i-1 i], : ) = [ c*H(i-1,:)+s*H(i,:)
-                       -s*H(i-1,:)+c*H(i,:) ];
+    c = cos (theta);
+    s = sin (theta);
+    H([i-1 i], :) = [ c*H(i-1,:)+s*H(i,:)
+                     -s*H(i-1,:)+c*H(i,:) ];
   endfor
 endfunction
 
@@ -2236,16 +2278,26 @@ function A = rando (n, k = 1)
   ##           K = 3:  A(i,j) = -1, 0 or 1 with equal probability.
   ##         N may be a 2-vector, in which case the matrix is N(1)-by-N(2).
 
-  m = n(1);                    % Parameter n specifies dimension: m-by-n.
-  n = n(max(size(n)));
-
-  if k == 1                    % {0, 1}
-    A = floor( rand(m,n) + .5 );
-  elseif k == 2                % {-1, 1}
-    A = 2*floor( rand(m,n) + .5 ) - 1;
-  elseif k == 3                % {-1, 0, 1}
-    A = round( 3*rand(m,n) - 1.5 );
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for rando matrix.");
+  elseif (! isnumeric (n) || all (numel (n) != [1 2]) || fix (n) != n)
+    error ("gallery: N must be an integer for rando matrix.");
+  elseif (! isnumeric (k) || ! isscalar (k))
+    error ("gallery: K must be a numeric scalar for smoke matrix.");
   endif
+
+  ## Parameter n specifies dimension: m-by-n.
+  m = n(1);
+  n = n(end);
+
+  switch (k)
+    case (1), A =   floor (  rand(m, n) + 0.5);     # {0, 1}
+    case (2), A = 2*floor (  rand(m, n) + 0.5) -1;  # {-1, 1}
+    case (3), A =   round (3*rand(m, n) - 1.5);     # {-1, 0, 1}
+    otherwise
+      error ("gallery: unknown K `%d' for smoke matrix.", k);
+  endswitch
+
 endfunction
 
 function A = randsvd (n, kappa = sqrt (1/eps), mode = 3, kl = n-1, ku = kl)
@@ -2282,78 +2334,94 @@ function A = randsvd (n, kappa = sqrt (1/eps), mode = 3, kl = n-1, ku = kl)
   ##       LAPACK Working Note #9, Courant Institute of Mathematical Sciences,
   ##       New York, 1989.
 
-  if abs(kappa) < 1
-    error('Condition number must be at least 1!')
+  if (nargin < 1 || nargin > 5)
+    error ("gallery: 1 to 5 arguments are required for randsvd matrix.");
+  elseif (! isnumeric (n) || all (numel (n) != [1 2]) || fix (n) != n)
+    error ("gallery: N must be a 1 or 2 element integer vector for randsvd matrix.");
+  elseif (! isnumeric (kappa) || ! isscalar (kappa))
+    error ("gallery: KAPPA must be a numeric scalar for randsvd matrix.");
+  elseif (abs (kappa) < 1)
+    error ("gallery: KAPPA must larger than or equal to 1 for randsvd matrix.");
+  elseif (! isnumeric (mode) || ! isscalar (mode))
+    error ("gallery: MODE must be a numeric scalar for randsvd matrix.");
+  elseif (! isnumeric (kl) || ! isscalar (kl))
+    error ("gallery: KL must be a numeric scalar for randsvd matrix.");
+  elseif (! isnumeric (ku) || ! isscalar (ku))
+    error ("gallery: KU must be a numeric scalar for randsvd matrix.");
   endif
+
   posdef = 0;
-  if kappa < 0
+  if (kappa < 0)
     posdef = 1;
-    kappa = -kappa;
-  endif  % Special case.
+    kappa  = -kappa;
+  endif
 
-  p = min(n);
-  m = n(1);              % Parameter n specifies dimension: m-by-n.
-  n = n(max(size(n)));
+  ## Parameter n specifies dimension: m-by-n.
+  m = n(1);
+  n = n(end);
+  p = min ([m n]);
 
-  if p == 1              % Handle case where A is a vector.
-    A = randn(m, n);
-    A = A/norm(A);
+  ## If A will be a vector
+  if (p == 1)
+    A = randn (m, n);
+    A = A / norm (A);
     return
   end
-
-  j = abs(mode);
 
   ##  Set up vector sigma of singular values.
-  if j == 3
-    factor = kappa^(-1/(p-1));
-    sigma = factor.^[0:p-1];
-
-  elseif j == 4
-    sigma = ones(p,1) - (0:p-1)'/(p-1)*(1-1/kappa);
-
-  elseif j == 5    % In this case cond(A) <= kappa.
-    rand('uniform')
-    sigma = exp( -rand(p,1)*log(kappa) );
-
-  elseif j == 2
-    sigma = ones(p,1);
-    sigma(p) = 1/kappa;
-
-  elseif j == 1
-    sigma = ones(p,1)./kappa;
-    sigma(1) = 1;
-  end
+  switch (abs (mode))
+    case (1)
+      sigma = ones (p, 1) ./ kappa;
+      sigma(1) = 1;
+    case (2)
+      sigma = ones (p, 1);
+      sigma(p) = 1 / kappa;
+    case (3)
+      factor = kappa^(-1/(p-1));
+      sigma  = factor.^[0:p-1];
+    case (4)
+      sigma = ones (p, 1) - (0:p-1)'/(p-1)*(1-1/kappa);
+    case (5)
+      ## In this case cond (A) <= kappa.
+      rand ("uniform");
+      sigma = exp (-rand (p, 1) * log (kappa));
+    otherwise
+      error ("gallery: unknown MODE `%d' for randsvd matrix.", mode);
+  endswitch
 
   ##  Convert to diagonal matrix of singular values.
-  if mode < 0
-    sigma = sigma(p:-1:1);
+  if (mode < 0)
+    sigma = sigma (p:-1:1);
   end
-  sigma = diag(sigma);
+  sigma = diag (sigma);
 
-  if posdef                % Handle special case.
-    Q = qmult(p);
-    A = Q'*sigma*Q;
-    A = (A + A')/2;       % Ensure matrix is symmetric.
+  if (posdef)
+    ## handle case where KAPPA was negative
+    Q = qmult (p);
+    A = Q' * sigma * Q;
+    A = (A + A') / 2;  # Ensure matrix is symmetric.
     return
+  endif
+
+  if (m != n)
+    ## Expand to m-by-n diagonal matrix
+    sigma(m, n) = 0;
   end
 
-  if m ~= n
-    sigma(m, n) = 0;      % Expand to m-by-n diagonal matrix.
-  end
-
-  if kl == 0 && ku == 0     % Diagonal matrix requested - nothing more to do.
+  if (kl == 0 && ku == 0)
+    ## Diagonal matrix requested - nothing more to do.
     A = sigma;
-    return
-  end
+  else
+    ##  A = U*sigma*V, where U, V are random orthogonal matrices from the
+    ##  Haar distribution.
+    A = qmult (sigma');
+    A = qmult (A');
 
-  ##  A = U*sigma*V, where U, V are random orthogonal matrices from the
-  ##  Haar distribution.
-  A = qmult(sigma');
-  A = qmult(A');
-
-  if kl < n-1 || ku < n-1   % Bandwidth reduction.
-    A = bandred(A, kl, ku);
-  end
+    if (kl < n-1 || ku < n-1)
+      ## Bandwidth reduction
+      A = bandred (A, kl, ku);
+    endif
+  endif
 endfunction
 
 function A = redheff (n)
@@ -2381,9 +2449,15 @@ function A = redheff (n)
   ##            Spectral Properties of a Matrix of Redheffer,
   ##            Linear Algebra and Appl., 162 (1992), pp. 673-683.
 
-  i = (1:n)'*ones(1,n);
-  A = ~rem(i',i);
-  A(:,1) = ones(n,1);
+  if (nargin != 1)
+    error ("gallery: 1 is required for redheff matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for redheff matrix.");
+  endif
+
+  i = (1:n)' * ones (1, n);
+  A = ! rem (i', i);
+  A(:,1) = ones (n, 1);
 endfunction
 
 function A = riemann (n)
@@ -2405,10 +2479,16 @@ function A = riemann (n)
   ##            F. Roesler, Riemann's hypothesis as an eigenvalue problem,
   ##            Linear Algebra and Appl., 81 (1986), pp. 153-198.
 
+  if (nargin != 1)
+    error ("gallery: 1 is required for riemann matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for riemann matrix.");
+  endif
+
   n = n+1;
-  i = (2:n)'*ones(1,n-1);
+  i = (2:n)' * ones (1, n-1);
   j = i';
-  A = i .* (~rem(j,i)) - ones(n-1);
+  A = i .* (! rem (j, i)) - ones (n-1);
 endfunction
 
 function A = ris (n)
@@ -2425,8 +2505,14 @@ function A = ris (n)
   ##           Algebra and Function Minimisation, second edition, Adam Hilger,
   ##           Bristol, 1990 (Appendix 1).
 
-  p= -2*(1:n) + (n+1.5);
-  A = cauchy(p);
+  if (nargin != 1)
+    error ("gallery: 1 arguments is required for ris matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for ris matrix.");
+  endif
+
+  p = -2*(1:n) + (n+1.5);
+  A = cauchy (p);
 endfunction
 
 function A = smoke (n, k = 0)
@@ -2446,11 +2532,23 @@ function A = smoke (n, k = 0)
   ##           L. Reichel and L.N. Trefethen, Eigenvalues and pseudo-eigenvalues of
   ##           Toeplitz matrices, Linear Algebra and Appl., 162-164:153-185, 1992.
 
+  if (nargin < 1 || nargin > 2)
+    error ("gallery: 1 to 2 arguments are required for smoke matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n) || fix (n) != n)
+    error ("gallery: N must be an integer for smoke matrix.");
+  elseif (! isnumeric (n) || ! isscalar (n))
+    error ("gallery: K must be a numeric scalar for smoke matrix.");
+  endif
+
   w = exp(2*pi*i/n);
   A = diag( [w.^(1:n-1) 1] ) + diag(ones(n-1,1),1);
-  if (k == 0)
-    A(n,1) = 1;
-  endif
+
+  switch (k)
+    case (0), A(n,1) = 1;
+    case (1), # do nothing
+    otherwise,
+      error ("gallery: K must have a value of 0 or 1 for smoke matrix.");
+  endswitch
 endfunction
 
 function T = toeppd (n, m = n, w = rand (m,1), theta = rand (m,1))
@@ -2475,7 +2573,7 @@ function T = toeppd (n, m = n, w = rand (m,1), theta = rand (m,1))
     error ("gallery: N must be a numeric integer for toeppd matrix.");
   elseif (! isnumeric (m) || ! isscalar (m) || fix (m) != m)
     error ("gallery: M must be a numeric integer for toeppd matrix.");
-  elseif (numel (w) != m || numel (theta) ! = m)
+  elseif (numel (w) != m || numel (theta) != m)
     error ("gallery: W and THETA must be vectors of length M for toeppd matrix.");
   endif
 
@@ -2808,5 +2906,56 @@ function [A, b] = wilk (n)
 
   else
     error("gallery: unknown N %d for wilk matrix.", n);
+  endif
+endfunction
+
+## NOTE: bandred is part of the Test Matrix Toolbox and is used by randsvd()
+function A = bandred (A, kl, ku)
+  ## BANDRED  Band reduction by two-sided unitary transformations.
+  ##          B = BANDRED(A, KL, KU) is a matrix unitarily equivalent to A
+  ##          with lower bandwidth KL and upper bandwidth KU
+  ##          (i.e. B(i,j) = 0 if i > j+KL or j > i+KU).
+  ##          The reduction is performed using Householder transformations.
+  ##          If KU is omitted it defaults to KL.
+  ##
+  ##          Called by RANDSVD.
+  ##          This is a `standard' reduction.  Cf. reduction to bidiagonal form
+  ##          prior to computing the SVD.  This code is a little wasteful in that
+  ##          it computes certain elements which are immediately set to zero!
+  ## 
+  ##          Reference:
+  ##          G.H. Golub and C.F. Van Loan, Matrix Computations, second edition,
+  ##          Johns Hopkins University Press, Baltimore, Maryland, 1989.
+  ##          Section 5.4.3.
+
+  ##  Check for special case where order of left/right transformations matters.
+  ##  Easiest approach is to work on the transpose, flipping back at the end.
+  flip = false;
+  if (ku == 0)
+    flip = true;
+    A = A';
+    [ku, kl] = deal (kl, ku);
+  endif
+
+  [m, n] = size (A);
+
+  for j = 1:min (min (m, n), max (m-kl-1, n-ku-1))
+    if (j+kl+1 <= m)
+      [v, beta] = house (A(j+kl:m,j));
+      temp = A(j+kl:m,j:n);
+      A(j+kl:m,j:n) = temp - beta*v*(v'*temp);
+      A(j+kl+1:m,j) = zeros (m-j-kl, 1);
+    endif
+
+    if (j+ku+1 <= n)
+      [v, beta] = house (A(j,j+ku:n)');
+      temp = A(j:m,j+ku:n);
+      A(j:m,j+ku:n) = temp - beta*(temp*v)*v';
+      A(j,j+ku+1:n) = zeros (1, n-j-ku);
+    endif
+  endfor
+
+  if (flip)
+    A = A';
   endif
 endfunction
