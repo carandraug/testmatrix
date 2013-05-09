@@ -864,7 +864,7 @@
 ## uniformdata) by Nicholas .J. Higham <Nicholas.J.Higham@manchester.ac.uk>
 ## Adapted for Octave and into single gallery function by Carnë Draug
 
-function [matrix, varargout] = gallery (name, varargin)
+function [varargout] = gallery (name, varargin)
 
   if (nargin < 1)
     print_usage ();
@@ -882,76 +882,82 @@ function [matrix, varargout] = gallery (name, varargin)
   ## values instead of numeric. Only input check added was where it
   ## would be causing an error anyway.
 
+  ## we will always want to return at least 1 output
+  n_out = nargout;
+  if (n_out == 0)
+    n_out = 1;
+  endif
+
   switch (tolower (name))
     case "binomial"
       error ("gallery: matrix %s not implemented.", name);
-    case "cauchy"     , matrix = cauchy      (varargin{:});
-    case "chebspec"   , matrix = chebspec    (varargin{:});
-    case "chebvand"   , matrix = chebvand    (varargin{:});
-    case "chow"       , matrix = chow        (varargin{:});
-    case "circul"     , matrix = circul      (varargin{:});
-    case "clement"    , matrix = clement     (varargin{:});
-    case "compar"     , matrix = compar      (varargin{:});
-    case "condex"     , matrix = condex      (varargin{:});
-    case "cycol"      , matrix = cycol       (varargin{:});
-    case "dorr"       , [matrix, varargout{1:nargout-1}] = dorr (varargin{:});
-    case "dramadah"   , matrix = dramadah    (varargin{:});
-    case "fiedler"    , matrix = fiedler     (varargin{:});
-    case "forsythe"   , matrix = forsythe    (varargin{:});
-    case "frank"      , matrix = frank       (varargin{:});
-    case "gearmat"    , matrix = gearmat     (varargin{:});
-    case "gcdmat"     , matrix = gcdmat      (varargin{:});
-    case "grcar"      , matrix = grcar       (varargin{:});
-    case "hanowa"     , matrix = hanowa      (varargin{:});
-    case "house"      , matrix = house       (varargin{:});
+    case "cauchy"     , [varargout{1:n_out}] = cauchy      (varargin{:});
+    case "chebspec"   , [varargout{1:n_out}] = chebspec    (varargin{:});
+    case "chebvand"   , [varargout{1:n_out}] = chebvand    (varargin{:});
+    case "chow"       , [varargout{1:n_out}] = chow        (varargin{:});
+    case "circul"     , [varargout{1:n_out}] = circul      (varargin{:});
+    case "clement"    , [varargout{1:n_out}] = clement     (varargin{:});
+    case "compar"     , [varargout{1:n_out}] = compar      (varargin{:});
+    case "condex"     , [varargout{1:n_out}] = condex      (varargin{:});
+    case "cycol"      , [varargout{1:n_out}] = cycol       (varargin{:});
+    case "dorr"       , [varargout{1:n_out}] = dorr        (varargin{:});
+    case "dramadah"   , [varargout{1:n_out}] = dramadah    (varargin{:});
+    case "fiedler"    , [varargout{1:n_out}] = fiedler     (varargin{:});
+    case "forsythe"   , [varargout{1:n_out}] = forsythe    (varargin{:});
+    case "frank"      , [varargout{1:n_out}] = frank       (varargin{:});
+    case "gearmat"    , [varargout{1:n_out}] = gearmat     (varargin{:});
+    case "gcdmat"     , [varargout{1:n_out}] = gcdmat      (varargin{:});
+    case "grcar"      , [varargout{1:n_out}] = grcar       (varargin{:});
+    case "hanowa"     , [varargout{1:n_out}] = hanowa      (varargin{:});
+    case "house"      , [varargout{1:n_out}] = house       (varargin{:});
     case "integerdata"
       error ("gallery: matrix %s not implemented.", name);
-    case "invhess"    , matrix = invhess     (varargin{:});
-    case "invol"      , matrix = invol       (varargin{:});
-    case "ipjfact"    , [matrix, varargout{1}] = ipjfact (varargin{:});
-    case "jordbloc"   , matrix = jordbloc    (varargin{:});
-    case "kahan"      , matrix = kahan       (varargin{:});
-    case "kms"        , matrix = kms         (varargin{:});
-    case "krylov"     , matrix = krylov      (varargin{:});
-    case "lauchli"    , matrix = lauchli     (varargin{:});
-    case "lehmer"     , matrix = lehmer      (varargin{:});
+    case "invhess"    , [varargout{1:n_out}] = invhess     (varargin{:});
+    case "invol"      , [varargout{1:n_out}] = invol       (varargin{:});
+    case "ipjfact"    , [varargout{1:n_out}] = ipjfact     (varargin{:});
+    case "jordbloc"   , [varargout{1:n_out}] = jordbloc    (varargin{:});
+    case "kahan"      , [varargout{1:n_out}] = kahan       (varargin{:});
+    case "kms"        , [varargout{1:n_out}] = kms         (varargin{:});
+    case "krylov"     , [varargout{1:n_out}] = krylov      (varargin{:});
+    case "lauchli"    , [varargout{1:n_out}] = lauchli     (varargin{:});
+    case "lehmer"     , [varargout{1:n_out}] = lehmer      (varargin{:});
     case "leslie"
       error ("gallery: matrix %s not implemented.", name);
-    case "lesp"       , matrix = lesp        (varargin{:});
-    case "lotkin"     , matrix = lotkin      (varargin{:});
-    case "minij"      , matrix = minij       (varargin{:});
-    case "moler"      , matrix = moler       (varargin{:});
-    case "neumann"    , [matrix, varargout{1}] = neumann (varargin{:});
+    case "lesp"       , [varargout{1:n_out}] = lesp        (varargin{:});
+    case "lotkin"     , [varargout{1:n_out}] = lotkin      (varargin{:});
+    case "minij"      , [varargout{1:n_out}] = minij       (varargin{:});
+    case "moler"      , [varargout{1:n_out}] = moler       (varargin{:});
+    case "neumann"    , [varargout{1:n_out}] = neumann     (varargin{:});
     case "normaldata"
       error ("gallery: matrix %s not implemented.", name);
-    case "orthog"     , matrix = orthog      (varargin{:});
-    case "parter"     , matrix = parter      (varargin{:});
-    case "pei"        , matrix = pei         (varargin{:});
-    case "poisson"    , matrix = poisson     (varargin{:});
-    case "prolate"    , matrix = prolate     (varargin{:});
+    case "orthog"     , [varargout{1:n_out}] = orthog      (varargin{:});
+    case "parter"     , [varargout{1:n_out}] = parter      (varargin{:});
+    case "pei"        , [varargout{1:n_out}] = pei         (varargin{:});
+    case "poisson"    , [varargout{1:n_out}] = poisson     (varargin{:});
+    case "prolate"    , [varargout{1:n_out}] = prolate     (varargin{:});
     case "randcolu"
       error ("gallery: matrix %s not implemented.", name);
     case "randcorr"
       error ("gallery: matrix %s not implemented.", name);
-    case "randhess"    , matrix = randhess    (varargin{:});
+    case "randhess"    , [varargout{1:n_out}] = randhess    (varargin{:});
     case "randjorth"
       error ("gallery: matrix %s not implemented.", name);
-    case "rando"       , matrix = rando       (varargin{:});
-    case "randsvd"     , matrix = randsvd     (varargin{:});
-    case "redheff"     , matrix = redheff     (varargin{:});
-    case "riemann"     , matrix = riemann     (varargin{:});
-    case "ris"         , matrix = ris         (varargin{:});
+    case "rando"       , [varargout{1:n_out}] = rando       (varargin{:});
+    case "randsvd"     , [varargout{1:n_out}] = randsvd     (varargin{:});
+    case "redheff"     , [varargout{1:n_out}] = redheff     (varargin{:});
+    case "riemann"     , [varargout{1:n_out}] = riemann     (varargin{:});
+    case "ris"         , [varargout{1:n_out}] = ris         (varargin{:});
     case "sampling"
       error ("gallery: matrix %s not implemented.", name);
-    case "smoke"       , matrix = smoke       (varargin{:});
-    case "toeppd"      , matrix = toeppd      (varargin{:});
-    case "toeppen"     , matrix = toeppen     (varargin{:});
-    case "tridiag"     , matrix = tridiag     (varargin{:});
-    case "triw"        , matrix = triw        (varargin{:});
+    case "smoke"       , [varargout{1:n_out}] = smoke       (varargin{:});
+    case "toeppd"      , [varargout{1:n_out}] = toeppd      (varargin{:});
+    case "toeppen"     , [varargout{1:n_out}] = toeppen     (varargin{:});
+    case "tridiag"     , [varargout{1:n_out}] = tridiag     (varargin{:});
+    case "triw"        , [varargout{1:n_out}] = triw        (varargin{:});
     case "uniformdata"
       error ("gallery: matrix %s not implemented.", name);
-    case "wathen"      , matrix = wathen      (varargin{:});
-    case "wilk"        , [matrix, varargout{1}] = wilk (varargin{:});
+    case "wathen"      , [varargout{1:n_out}] = wathen      (varargin{:});
+    case "wilk"        , [varargout{1:n_out}] = wilk        (varargin{:});
     otherwise
       error ("gallery: unknown matrix with NAME %s", name);
   endswitch
